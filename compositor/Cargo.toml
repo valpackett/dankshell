@@ -1,0 +1,30 @@
+[package]
+name = "compositor"
+version = "0.0.0"
+authors = [ "Greg V <greg@unrelenting.technology>" ]
+keywords = [ "Weston", "Wayland", "Compositor" ]
+categories = ["gui"]
+description = "The dankshell Wayland compositor"
+license = "MIT"
+homepage = "https://github.com/myfreeweb/dankshell"
+repository = "https://github.com/myfreeweb/dankshell"
+publish = false
+autobins = false
+
+[[bin]]
+name = "dankshell-compositor"
+path = "src/main.rs"
+
+[dependencies]
+weston-rs = "0"
+libweston-sys = "0"
+wayland-sys = { version = "0", features = ["client", "cursor", "egl", "server"] }
+wayland-server = "0"
+xkbcommon = "0.3"
+input-sys = "1"
+libc = "0.2"
+loginw = "0"
+lazy_static = "1"
+mut_static = "5"
+log = "0.4"
+pretty_env_logger = "0.2"
