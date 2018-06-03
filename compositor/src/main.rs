@@ -10,6 +10,7 @@ extern crate weston_rs;
 #[macro_use]
 extern crate lazy_static;
 extern crate mut_static;
+extern crate protos;
 
 use std::{env, process};
 use mut_static::MutStatic;
@@ -22,12 +23,14 @@ mod moove;
 mod resize;
 mod desktop;
 mod focus;
+mod layer_shell;
 
 use ctx::SurfaceContext;
 
 lazy_static! {
     static ref COMPOSITOR: MutStatic<Compositor> = MutStatic::new();
     static ref DESKTOP: MutStatic<Desktop<SurfaceContext>> = MutStatic::new();
+    static ref TOP_LAYER: MutStatic<Layer> = MutStatic::new();
 }
 
 weston_logger!{fn wlog(msg: &str) {
@@ -90,6 +93,12 @@ fn main() {
     env::remove_var("DISPLAY");
     let sock_name = display.add_socket_auto().expect("add_socket_auto");
     env::set_var("WAYLAND_DISPLAY", sock_name);
+
+    // Setup layer-shell
+    let mut top_layer = Layer::new(&compositor);
+    top_layer.set_position(POSITION_UI);
+    TOP_LAYER.set(top_layer).expect("top_layer MutStatic set");
+    layer_shell::register_layer_shell(&mut display, event_loop.token());
 
     // Go!
     compositor.wake();

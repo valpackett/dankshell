@@ -16,6 +16,7 @@ name = "dankshell-compositor"
 path = "src/main.rs"
 
 [dependencies]
+protos = { path = "../protos", features = ["server"] }
 weston-rs = "0"
 libweston-sys = "0"
 wayland-sys = { version = "0", features = ["client", "cursor", "egl", "server"] }

@@ -1,0 +1,26 @@
+[package]
+name = "protos"
+version = "0.0.0"
+authors = [ "Greg V <greg@unrelenting.technology>" ]
+keywords = [ "Wayland", "Desktop" ]
+categories = ["gui"]
+description = "The extra Wayland protocols used by dankshell"
+license = "MIT"
+homepage = "https://github.com/myfreeweb/dankshell"
+repository = "https://github.com/myfreeweb/dankshell"
+publish = false
+
+[features]
+server = ["wayland-sys/server", "wayland-protocols/server", "wayland-server"]
+client = ["wayland-sys/client", "wayland-protocols/client", "wayland-client"]
+
+[dependencies]
+wayland-sys = "0"
+wayland-commons = "0"
+wayland-protocols = "0"
+wayland-server = { version = "0", optional = true }
+wayland-client = { version = "0", optional = true }
+bitflags = "1.0"
+
+[build-dependencies]
+wayland-scanner = "0"
