@@ -5,6 +5,9 @@ extern crate gdk_sys;
 extern crate glib;
 extern crate wayland_client;
 extern crate protos;
+extern crate pretty_env_logger;
+#[macro_use]
+extern crate log;
 
 use gtk::prelude::*;
 use gtk::{Button, Window, WindowType};
@@ -25,14 +28,15 @@ extern "C" {
 }
 
 fn main() {
+    pretty_env_logger::init();
     gtk::init().expect("gtk::init");
 
     let gdk_display = gdk::Display::get_default();
-    let (display, mut event_queue) = unsafe { Display::make_display(gdk_wayland_display_get_wl_display(gdk_display.to_glib_none().0)) }.expect("make_display");
+    let (display, mut event_queue) = unsafe { Display::from_external_display(gdk_wayland_display_get_wl_display(gdk_display.to_glib_none().0)) };
     let globals = GlobalManager::new(display.get_registry().unwrap());
     event_queue.sync_roundtrip().unwrap();
     for (id, interface, version) in globals.list() {
-        println!("{}: {} (version {})", id, interface, version);
+        debug!("wl global {}: {} (version {})", id, interface, version);
     }
     let layer_shell = globals.instantiate_auto::<lsh::ZxdgLayerShellV1>().expect("xdg-layer-shell protocol from compositor").implement(|_, _| {});
 

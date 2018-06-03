@@ -30,7 +30,7 @@ pub fn heads_changed_listener(be: SelectedBackend) -> mem::ManuallyDrop<Box<WlLi
             } else if !head.is_connected() && head.is_enabled() {
                 drop(head.output_owned());
             } else if head.is_enabled() && head.is_device_changed() {
-                eprintln!("Detected monitor change on head '{:?}'\n", head.get_name());
+                warn!("Detected monitor change on head '{:?}'\n", head.get_name());
             }
             head.reset_device_changed();
         }
@@ -58,12 +58,12 @@ fn head_enable(compositor: &mut CompositorRef, head: &mut HeadRef, be: &Selected
             },
         }
         if !output.enable() {
-            eprintln!("Could not enable output for head {:?}\n", head.get_name());
+            error!("Could not enable output for head {:?}\n", head.get_name());
         } else {
             let _ = mem::ManuallyDrop::new(output); // keep (do not destroy)
         }
     } else {
-        eprintln!("Could not create an output for head {:?}\n", head.get_name());
+        error!("Could not create an output for head {:?}\n", head.get_name());
     }
 }
 

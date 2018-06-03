@@ -25,7 +25,7 @@ pub mod layer_shell {
             pub mod c_interfaces {
                 pub(crate) use wayland_sys::common::{wl_argument, wl_interface};
                 pub(crate) use wayland_client::sys::protocol_interfaces::{wl_surface_interface, wl_output_interface};
-                pub(crate) use wayland_protocols::xdg_shell::client::c_interfaces::xdg_popup_interface;
+                pub(crate) use wayland_protocols::xdg_shell::c_interfaces::xdg_popup_interface;
                 include!(concat!(env!("OUT_DIR"), "/layer-shell-unstable-v1-interfaces.rs"));
             }
 
@@ -44,7 +44,7 @@ pub mod layer_shell {
             pub mod c_interfaces {
                 pub(crate) use wayland_sys::common::{wl_argument, wl_interface};
                 pub(crate) use wayland_server::sys::protocol_interfaces::{wl_surface_interface, wl_output_interface};
-                pub(crate) use wayland_protocols::xdg_shell::server::c_interfaces::xdg_popup_interface;
+                pub(crate) use wayland_protocols::xdg_shell::c_interfaces::xdg_popup_interface;
                 include!(concat!(env!("OUT_DIR"), "/layer-shell-unstable-v1-interfaces.rs"));
             }
 
