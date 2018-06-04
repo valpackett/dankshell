@@ -11,48 +11,26 @@ extern crate log;
 
 use gtk::prelude::*;
 use gtk::{Button, Window, WindowType};
-use glib::translate::ToGlibPtr;
-use wayland_client::{Display, GlobalManager, Proxy};
-use wayland_client::protocol::wl_display::RequestsTrait;
-use wayland_client::sys::client::wl_display;
-use protos::layer_shell::client::zxdg_layer_shell_v1 as lsh;
-use lsh::RequestsTrait as LRequestsTrait;
 
-#[allow(non_camel_case_types)]
-type wl_surface = libc::c_void;
-
-extern "C" {
-    fn gdk_wayland_display_get_wl_display(display: *mut gdk_sys::GdkDisplay) -> *mut wl_display;
-    fn gdk_wayland_window_set_use_custom_surface(window: *mut gdk_sys::GdkWindow);
-    fn gdk_wayland_window_get_wl_surface(window: *mut gdk_sys::GdkWindow) -> *mut wl_surface;
-}
+mod layer_shell;
 
 fn main() {
     pretty_env_logger::init();
     gtk::init().expect("gtk::init");
 
-    let gdk_display = gdk::Display::get_default();
-    let (display, mut event_queue) = unsafe { Display::from_external_display(gdk_wayland_display_get_wl_display(gdk_display.to_glib_none().0)) };
-    let globals = GlobalManager::new(display.get_registry().unwrap());
-    event_queue.sync_roundtrip().unwrap();
-    for (id, interface, version) in globals.list() {
-        debug!("wl global {}: {} (version {})", id, interface, version);
-    }
-    let layer_shell = globals.instantiate_auto::<lsh::ZxdgLayerShellV1>().expect("xdg-layer-shell protocol from compositor").implement(|_, _| {});
+    let mut layer_shell = layer_shell::get_layer_shell();
 
-    let window = Window::new(WindowType::Toplevel);
+    let mut window = Window::new(WindowType::Toplevel);
     window.set_title("test");
-    window.set_default_size(1280, 24);
+    window.set_default_size(320, 24);
     window.set_decorated(false);
     let button = Button::new_with_label("Click me!");
     window.add(&button);
 
-    window.realize();
-    let gdk_window_ptr = window.get_window().expect("window").to_glib_none().0;
-    unsafe { gdk_wayland_window_set_use_custom_surface(gdk_window_ptr) };
-    let wl_surface = unsafe { gdk_wayland_window_get_wl_surface(gdk_window_ptr) };
-    let layer_surface = layer_shell.get_layer_surface(&unsafe { Proxy::from_c_ptr(wl_surface as *mut _) },
-        None, lsh::Layer::Top, "test".to_owned()).expect("get_layer_surface");
+    use layer_shell::lsr::{Anchor, RequestsTrait};
+    let layer_surface = layer_shell::get_layer_surface(&mut layer_shell, &mut window);
+    layer_surface.set_anchor(Anchor::Top);
+    layer_surface.set_margin(10, 10, 10, 10);
     window.show_all();
 
     window.connect_delete_event(|_, _| {
