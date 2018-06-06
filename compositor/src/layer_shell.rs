@@ -39,6 +39,31 @@ struct LayerShellCtx {
     margin: Margin,
 }
 
+impl LayerShellCtx {
+    fn position(&self, surface_size: (i32, i32), output_size: (i32, i32)) -> (f32, f32) {
+        let (w, h) = surface_size;
+        let (output_w, output_h) = output_size;
+        let (mut x, mut y) = (0.0, 0.0);
+        if self.anchor.contains(lsr::Anchor::Top | lsr::Anchor::Bottom) ||
+            !(self.anchor.contains(lsr::Anchor::Top) || self.anchor.contains(lsr::Anchor::Bottom)) {
+            y = (output_h / 2 - h / 2) as f32;
+        } else if self.anchor.contains(lsr::Anchor::Bottom) {
+            y = (output_h - h - self.margin.bottom) as f32;
+        } else if self.anchor.contains(lsr::Anchor::Top) {
+            y = self.margin.top as f32;
+        }
+        if self.anchor.contains(lsr::Anchor::Left | lsr::Anchor::Right) ||
+            !(self.anchor.contains(lsr::Anchor::Left) || self.anchor.contains(lsr::Anchor::Right)) {
+            x = (output_w / 2 - w / 2) as f32;
+        } else if self.anchor.contains(lsr::Anchor::Right) {
+            x = (output_w - w - self.margin.right) as f32;
+        } else if self.anchor.contains(lsr::Anchor::Left) {
+            x = self.margin.left as f32;
+        }
+        (x, y)
+    }
+}
+
 struct LayerShellImpl {
 }
 
@@ -57,28 +82,11 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
                 top_layer.view_list_entry_insert(&mut ctx.view);
                 unsafe { (*ctx.view.as_ptr()).is_mapped = true };
             }
-            let (w, h) = surface.get_content_size();
-            let (mut x, mut y) = (0.0, 0.0);
             // XXX: output is not assigned on first commit
             if let Some(output) = ctx.view.output() {
-                if ctx.anchor.contains(lsr::Anchor::Top | lsr::Anchor::Bottom) ||
-                    !(ctx.anchor.contains(lsr::Anchor::Top) || ctx.anchor.contains(lsr::Anchor::Bottom)) {
-                    y = (output.height() / 2 - h / 2) as f32;
-                } else if ctx.anchor.contains(lsr::Anchor::Bottom) {
-                    y = (output.height() - h - ctx.margin.bottom) as f32;
-                } else if ctx.anchor.contains(lsr::Anchor::Top) {
-                    y = ctx.margin.top as f32;
-                }
-                if ctx.anchor.contains(lsr::Anchor::Left | lsr::Anchor::Right) ||
-                    !(ctx.anchor.contains(lsr::Anchor::Left) || ctx.anchor.contains(lsr::Anchor::Right)) {
-                    x = (output.width() / 2 - w / 2) as f32;
-                } else if ctx.anchor.contains(lsr::Anchor::Right) {
-                    x = (output.width() - w - ctx.margin.right) as f32;
-                } else if ctx.anchor.contains(lsr::Anchor::Left) {
-                    x = ctx.margin.left as f32;
-                }
+                let (x, y) = ctx.position(surface.get_content_size(), (output.width(), output.height()));
+                ctx.view.set_position(x, y);
             }
-            ctx.view.set_position(x, y);
             ctx.view.update_transform();
             surface.damage();
             surface.compositor_mut().schedule_repaint();
