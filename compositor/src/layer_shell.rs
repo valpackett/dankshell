@@ -1,4 +1,6 @@
 use std::{ffi, mem};
+use std::rc::Rc;
+use std::cell::Cell;
 use libc;
 use weston_rs::{View, Surface, ForeignType, libweston_sys};
 use wayland_sys::server::wl_resource;
@@ -37,6 +39,8 @@ struct LayerShellCtx {
     view: View,
     anchor: lsr::Anchor,
     margin: Margin,
+    req_size: (i32, i32),
+    resource: Rc<Cell<Option<Resource<lsr::ZxdgLayerSurfaceV1>>>>,
 }
 
 impl LayerShellCtx {
@@ -62,6 +66,25 @@ impl LayerShellCtx {
         }
         (x, y)
     }
+
+    fn next_size(&self, old_size: (i32, i32), output_size: (i32, i32)) -> (i32, i32) {
+        let (output_w, output_h) = output_size;
+        let (req_w, req_h) = self.req_size;
+        let (mut w, mut h) = old_size;
+        if req_w > 0 {
+            w = req_w;
+        }
+        if req_h > 0 {
+            h = req_h;
+        }
+        if self.anchor.contains(lsr::Anchor::Left | lsr::Anchor::Right) {
+            w = output_w - self.margin.left - self.margin.right;
+        }
+        if self.anchor.contains(lsr::Anchor::Top | lsr::Anchor::Bottom) {
+            h = output_h - self.margin.top - self.margin.bottom;
+        }
+        (w, h)
+    }
 }
 
 struct LayerShellImpl {
@@ -76,6 +99,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
         let mut surface = get_weston_surface(surface.c_ptr());
         let _ = surface.set_role(ffi::CString::new("layer-shell").unwrap(), resource, 0);
         let view = View::new(&surface);
+        let res_rc = Rc::new(Cell::new(None));
         surface.set_committed(|surface, sx, sy, mut ctx| {
             if !ctx.view.is_mapped() {
                 let mut top_layer = TOP_LAYER.write().expect("top_layer MutStatic");
@@ -84,8 +108,18 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
             }
             // XXX: output is not assigned on first commit
             if let Some(output) = ctx.view.output() {
-                let (x, y) = ctx.position(surface.get_content_size(), (output.width(), output.height()));
+                let output_size = (output.width(), output.height());
+                let (x, y) = ctx.position(surface.get_content_size(), output_size);
                 ctx.view.set_position(x, y);
+                let (old_w, old_h) = surface.get_content_size();
+                let (new_w, new_h) = ctx.next_size((old_w, old_h), output_size);
+                if new_w != old_w || new_h != old_h {
+                    if let Some(res) = ctx.resource.take() {
+                        use self::lsr::Event::Configure;
+                        res.send(Configure { serial: 0, width: new_w as u32, height: new_h as u32 });
+                        ctx.resource.set(Some(res));
+                    }
+                }
             }
             ctx.view.update_transform();
             surface.damage();
@@ -94,8 +128,10 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
             view,
             anchor: lsr::Anchor::Top,
             margin: Margin::default(),
+            req_size: (-1, -1),
+            resource: res_rc.clone(),
         });
-        id.implement(LayerSurfaceImpl { surface }, Some(|_, _| {}));
+        res_rc.set(Some(id.implement(LayerSurfaceImpl { surface }, Some(|_, _| {}))));
     }
 }
 
@@ -116,14 +152,22 @@ impl Implementation<Resource<lsr::ZxdgLayerSurfaceV1>, lsr::Request> for LayerSu
         let ctx : &mut LayerShellCtx = unsafe { self.surface.committed_private_mut() };
         use self::lsr::Request::*;
         match msg {
-            SetSize { width, height } => {},
+            SetSize { width, height } => { ctx.req_size = (width as i32, height as i32); },
             SetAnchor { anchor } => { ctx.anchor = anchor },
             SetExclusiveZone { zone } => {},
-            SetMargin { top, right, bottom, left } => { ctx.margin = Margin { top, right, bottom, left } },
+            SetMargin { top, right, bottom, left } => { ctx.margin = Margin { top, right, bottom, left }; },
             SetKeyboardInteractivity { keyboard_interactivity } => {},
             GetPopup { popup } => {},
             AckConfigure { serial } => {},
             Destroy => {},
+        }
+        if let Some(output) = ctx.view.output() {
+            let (old_w, old_h) = self.surface.get_content_size();
+            let (new_w, new_h) = ctx.next_size((old_w, old_h), (output.width(), output.height()));
+            if new_w != old_w || new_h != old_h {
+                use self::lsr::Event::Configure;
+                resource.send(Configure { serial: 0, width: new_w as u32, height: new_h as u32 });
+            }
         }
     }
 }

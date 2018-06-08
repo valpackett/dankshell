@@ -23,6 +23,7 @@ gtk = { version = "0.4", features = ["v3_16"] }
 gdk = "0"
 gdk-sys = "0"
 glib = "0"
+send-cell = "0"
 libc = "0.2"
 log = "0.4"
 pretty_env_logger = "0.2"
