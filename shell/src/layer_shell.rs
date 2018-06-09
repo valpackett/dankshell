@@ -58,7 +58,7 @@ pub fn get_layer_shell() -> (LayerShellApi, thread::JoinHandle<()>) {
     (rx.recv().unwrap(), thread)
 }
 
-pub fn get_layer_surface(layer_shell: &mut LayerShellApi, window: &mut Window) -> LayerSurfaceApi {
+pub fn get_layer_surface(layer_shell: &mut LayerShellApi, window: &mut Window, layer: lsh::Layer) -> LayerSurfaceApi {
     use self::lsh::RequestsTrait;
     window.realize();
     let gdk_window_ptr = window.get_window().expect("window").to_glib_none().0;
@@ -66,7 +66,7 @@ pub fn get_layer_surface(layer_shell: &mut LayerShellApi, window: &mut Window) -
     let wl_surface = unsafe { gdk_wayland_window_get_wl_surface(gdk_window_ptr) };
     layer_shell.get_layer_surface(
         &unsafe { Proxy::from_c_ptr(wl_surface as *mut _) },
-        None, lsh::Layer::Top, "".to_owned()
+        None, layer, "".to_owned()
         ).expect("get_layer_surface")
         .implement(LayerSurfaceImpl { window: Arc::new(SendCell::new(UnsafeSyncWrapper(window.clone()))) })
 }

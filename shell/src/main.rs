@@ -29,7 +29,7 @@ fn main() {
     window.add(&button);
 
     use layer_shell::lsr::{Anchor, RequestsTrait};
-    let layer_surface = layer_shell::get_layer_surface(&mut layer_shell, &mut window);
+    let layer_surface = layer_shell::get_layer_surface(&mut layer_shell, &mut window, layer_shell::lsh::Layer::Top);
     layer_surface.set_anchor(Anchor::Top | Anchor::Left | Anchor::Right);
     layer_surface.set_margin(10, 10, 10, 10);
     window.show_all();

@@ -30,7 +30,6 @@ use ctx::SurfaceContext;
 lazy_static! {
     static ref COMPOSITOR: MutStatic<Compositor> = MutStatic::new();
     static ref DESKTOP: MutStatic<Desktop<SurfaceContext>> = MutStatic::new();
-    static ref TOP_LAYER: MutStatic<Layer> = MutStatic::new();
 }
 
 weston_logger!{fn wlog(msg: &str) {
@@ -95,9 +94,7 @@ fn main() {
     env::set_var("WAYLAND_DISPLAY", sock_name);
 
     // Setup layer-shell
-    let mut top_layer = Layer::new(&compositor);
-    top_layer.set_position(POSITION_UI);
-    TOP_LAYER.set(top_layer).expect("top_layer MutStatic set");
+    layer_shell::create_layers(&compositor);
     layer_shell::register_layer_shell(&mut display, event_loop.token());
 
     // Go!

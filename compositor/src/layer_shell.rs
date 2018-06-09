@@ -2,13 +2,42 @@ use std::{ffi, mem};
 use std::rc::Rc;
 use std::cell::Cell;
 use libc;
-use weston_rs::{View, Surface, ForeignType, libweston_sys};
+use weston_rs::{
+    Compositor, Layer, View, Surface, ForeignType, libweston_sys,
+    POSITION_BACKGROUND, POSITION_BOTTOM_UI, POSITION_UI, POSITION_LOCK,
+};
+use mut_static::MutStatic;
 use wayland_sys::server::wl_resource;
 use wayland_server::{NewResource, Resource, Display, LoopToken};
 use wayland_server::commons::Implementation;
 use protos::layer_shell::server::zxdg_layer_shell_v1 as lsh;
 use protos::layer_shell::server::zxdg_layer_surface_v1 as lsr;
-use {COMPOSITOR, TOP_LAYER};
+use COMPOSITOR;
+
+struct Layers {
+    background: Layer,
+    bottom: Layer,
+    top: Layer,
+    overlay: Layer,
+}
+
+lazy_static! {
+    static ref LAYERS: MutStatic<Layers> = MutStatic::new();
+}
+
+pub fn create_layers(compositor: &Compositor) {
+    let mut layers = Layers {
+        background: Layer::new(&compositor),
+        bottom: Layer::new(&compositor),
+        top: Layer::new(&compositor),
+        overlay: Layer::new(&compositor),
+    };
+    layers.background.set_position(POSITION_BACKGROUND);
+    layers.bottom.set_position(POSITION_BOTTOM_UI);
+    layers.top.set_position(POSITION_UI);
+    layers.overlay.set_position(POSITION_LOCK);
+    LAYERS.set(layers).expect("layers MutStatic set");
+}
 
 extern "C" {
     fn wl_resource_get_user_data(res: *mut wl_resource) -> *mut libc::c_void;
@@ -37,6 +66,7 @@ struct Margin {
 /// The data for each surface, kept in its committed_private (user data) field.
 struct LayerShellCtx {
     view: View,
+    layer: lsh::Layer,
     anchor: lsr::Anchor,
     margin: Margin,
     req_size: (i32, i32),
@@ -94,7 +124,7 @@ unsafe impl Send for LayerShellImpl {}
 
 impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShellImpl {
     fn receive(&mut self, msg: lsh::Request, resource: Resource<lsh::ZxdgLayerShellV1>) {
-        let self::lsh::Request::GetLayerSurface { id, surface, .. } = msg;
+        let self::lsh::Request::GetLayerSurface { id, surface, layer, .. } = msg;
         // wayland-rs wraps user data, for unmanaged resources .get_user_data() returns a nullptr
         let mut surface = get_weston_surface(surface.c_ptr());
         let _ = surface.set_role(ffi::CString::new("layer-shell").unwrap(), resource, 0);
@@ -102,8 +132,14 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
         let res_rc = Rc::new(Cell::new(None));
         surface.set_committed(|surface, sx, sy, mut ctx| {
             if !ctx.view.is_mapped() {
-                let mut top_layer = TOP_LAYER.write().expect("top_layer MutStatic");
-                top_layer.view_list_entry_insert(&mut ctx.view);
+                use self::lsh::Layer::*;
+                let mut layers = LAYERS.write().expect("layer MutStatic");
+                match ctx.layer {
+                    Background => layers.background.view_list_entry_insert(&mut ctx.view),
+                    Bottom => layers.bottom.view_list_entry_insert(&mut ctx.view),
+                    Top => layers.top.view_list_entry_insert(&mut ctx.view),
+                    Overlay => layers.overlay.view_list_entry_insert(&mut ctx.view),
+                }
                 unsafe { (*ctx.view.as_ptr()).is_mapped = true };
             }
             // XXX: output is not assigned on first commit
@@ -126,6 +162,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
             surface.compositor_mut().schedule_repaint();
         }, LayerShellCtx {
             view,
+            layer,
             anchor: lsr::Anchor::Top,
             margin: Margin::default(),
             req_size: (-1, -1),
