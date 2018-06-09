@@ -5,6 +5,11 @@ extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
 extern crate loginw;
+extern crate pdfork;
+extern crate rusty_sandbox;
+extern crate ipc_channel;
+#[macro_use]
+extern crate serde_derive;
 #[macro_use]
 extern crate weston_rs;
 #[macro_use]
@@ -12,11 +17,10 @@ extern crate lazy_static;
 extern crate mut_static;
 extern crate protos;
 
-use std::{env, process};
 use mut_static::MutStatic;
 use weston_rs::*;
-use loginw::priority;
 
+mod spawner;
 mod backend;
 mod ctx;
 mod moove;
@@ -40,15 +44,27 @@ fn main() {
     pretty_env_logger::init();
     weston_rs::log_set_handler(wlog, wlog);
 
+    let (_child_proc, spawner_tx) = spawner::start_spawner();
+
     let (mut display, mut event_loop) = Display::new();
     let mut compositor = Compositor::new(&display, &mut event_loop);
 
     compositor.set_xkb_rule_names(None); // defaults to environment variables
 
+    // Make a socket for clients to connect to
+    let sock_name = display.add_socket_auto().expect("add_socket_auto");
+    spawner_tx.send(spawner::Request::SetDisplayName(sock_name.clone())).unwrap(); // XXX: seems to eat first msg??
+    spawner_tx.send(spawner::Request::SetDisplayName(sock_name)).unwrap();
+
     // Backend/head/output setup
     let be = backend::start_backend(&mut compositor, &mut event_loop);
     compositor.add_heads_changed_listener(backend::heads_changed_listener(be));
     compositor.flush_heads_changed();
+
+    // Sandbox the process if available on the OS (e.g. FreeBSD Capsicum).
+    // Nothing should need FS access from this point on.
+    // (Well, dynamic reconfiguration of XKB probably will...)
+    rusty_sandbox::Sandbox::new().sandbox_this_process();
 
     // Background color
     let mut bg_layer = Layer::new(&compositor);
@@ -78,20 +94,8 @@ fn main() {
 
     // Ctrl+Enter to spawn a terminal
     compositor.add_key_binding(ev::KEY_ENTER, KeyboardModifier::CTRL, &|_, _, _| {
-        use std::os::unix::process::CommandExt;
-        let _ = process::Command::new("weston-terminal").before_exec(|| {
-            // loginw sets realtime priority for the compositor
-            // see https://blog.martin-graesslin.com/blog/2017/09/kwinwayland-goes-real-time/ for reasons
-            // we obviously don't want it in user applications :D
-            priority::make_normal();
-            Ok(())
-        }).spawn().expect("spawn");
+        let _ = spawner_tx.send(spawner::Request::Spawn("weston-terminal".to_owned()));
     });
-
-    // Set environment for spawned processes (namely, the terminal above)
-    env::remove_var("DISPLAY");
-    let sock_name = display.add_socket_auto().expect("add_socket_auto");
-    env::set_var("WAYLAND_DISPLAY", sock_name);
 
     // Setup layer-shell
     layer_shell::create_layers(&compositor);
@@ -101,5 +105,6 @@ fn main() {
     compositor.wake();
     COMPOSITOR.set(compositor).expect("compositor MutStatic set");
     DESKTOP.set(desktop).expect("desktop MutStatic set");
+    let _ = spawner_tx.send(spawner::Request::Spawn("dankshell-shell-experience".to_owned()));
     let _ = event_loop.run();
 }
