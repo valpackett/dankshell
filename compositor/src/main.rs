@@ -1,4 +1,5 @@
 #![feature(nll)]
+#![feature(vec_remove_item)]
 
 extern crate libc;
 extern crate nix;
@@ -23,6 +24,7 @@ use weston_rs::*;
 
 mod spawner;
 mod authorization;
+mod surface_registry;
 mod backend;
 mod ctx;
 mod moove;

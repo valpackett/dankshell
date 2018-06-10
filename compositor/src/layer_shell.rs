@@ -13,6 +13,7 @@ use wayland_server::commons::Implementation;
 use protos::layer_shell::server::zxdg_layer_shell_v1 as lsh;
 use protos::layer_shell::server::zxdg_layer_surface_v1 as lsr;
 use authorization::{self, Permissions, LayerShellPermissions};
+use surface_registry::{SURFACES, SurfaceListItem};
 use COMPOSITOR;
 
 struct Layers {
@@ -135,7 +136,8 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
         };
         let self::lsh::Request::GetLayerSurface { id, surface, layer, .. } = msg;
         // wayland-rs wraps user data, for unmanaged resources .get_user_data() returns a nullptr
-        let mut surface = get_weston_surface(surface.c_ptr());
+        let surface_res_ptr = surface.c_ptr();
+        let mut surface = get_weston_surface(surface_res_ptr);
         let _ = surface.set_role(ffi::CString::new("layer-shell").unwrap(), resource, 0);
         let view = View::new(&surface);
         let res_rc = Rc::new(Cell::new(None));
@@ -203,6 +205,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
             resource: res_rc.clone(),
         });
         res_rc.set(Some(id.implement(LayerSurfaceImpl { surface }, Some(|_, _| {}))));
+        SURFACES.write().expect("surfaces write").push(SurfaceListItem::LayerShell(get_weston_surface(surface_res_ptr)));
     }
 }
 

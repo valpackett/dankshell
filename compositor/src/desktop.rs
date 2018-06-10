@@ -3,6 +3,7 @@ use weston_rs::*;
 use ctx::SurfaceContext;
 use moove::MoveGrab;
 use resize::ResizeGrab;
+use surface_registry::{SURFACES, SurfaceListItem};
 use COMPOSITOR;
 
 /// Data for the Desktop API implementation
@@ -39,11 +40,13 @@ impl DesktopApi<SurfaceContext> for DesktopImpl {
             last_height: 0.0,
             focus_count: 1,
         }));
+        SURFACES.write().expect("surfaces write").push(SurfaceListItem::Desktop(dsurf.as_ptr()))
     }
 
     fn surface_removed(&mut self, dsurf: &mut DesktopSurfaceRef<SurfaceContext>) {
         let mut sctx = dsurf.get_user_data().expect("user_data");
         dsurf.unlink_view(&mut sctx.view);
+        SURFACES.write().expect("surfaces write").remove_item(&SurfaceListItem::Desktop(dsurf.as_ptr()));
         // sctx dropped here, destroying the view
     }
 
