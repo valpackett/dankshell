@@ -32,6 +32,7 @@ mod resize;
 mod desktop;
 mod focus;
 mod layer_shell;
+mod private_api;
 
 use ctx::SurfaceContext;
 use authorization::{Permissions, LayerShellPermissions};
@@ -44,12 +45,6 @@ lazy_static! {
 weston_logger!{fn wlog(msg: &str) {
     info!(target: "weston", "{}", msg);
 }}
-
-fn spawn_with_permissions(display: &mut Display, spawner_sock: &mut tiny_nix_ipc::Socket, cmd: &str, ps: Permissions) {
-    let sock = authorization::start_client_socket_with_permissions(display, ps).unwrap();
-    let _ = spawner_sock.send_cbor(&spawner::Request::Spawn(cmd.to_owned()), Some(&[sock]));
-    unsafe { libc::close(sock) };
-}
 
 fn main() {
     pretty_env_logger::init();
@@ -111,17 +106,21 @@ fn main() {
     layer_shell::create_layers(&compositor);
     layer_shell::register_layer_shell(&mut display, event_loop.token());
 
+    // Setup private API (for shell-experience)
+    private_api::register_private_api(&mut display, event_loop.token(), &spawner_sock);
+
     // Go!
     compositor.wake();
     COMPOSITOR.set(compositor).expect("compositor MutStatic set");
     DESKTOP.set(desktop).expect("desktop MutStatic set");
-    spawn_with_permissions(&mut display, &mut spawner_sock, "dankshell-shell-experience", Permissions {
+    spawner::spawn(&mut display, &mut spawner_sock, "dankshell-shell-experience", Some(Permissions {
         layer_shell: LayerShellPermissions {
             background: true,
             bottom: true,
             top: true,
             overlay: false,
-        }
-    });
+        },
+        private_api: true,
+    }));
     let _ = event_loop.run();
 }

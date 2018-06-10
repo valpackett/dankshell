@@ -6,19 +6,7 @@ use nix::sys::socket::{socketpair, AddressFamily, SockFlag, SockType};
 use weston_rs::Display;
 use weston_rs::wayland_server::{Resource, Client};
 use weston_rs::wayland_server::commons::Interface;
-
-#[derive(Debug, Clone, Copy)]
-pub struct LayerShellPermissions {
-    pub background: bool,
-    pub bottom: bool,
-    pub top: bool,
-    pub overlay: bool,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Permissions {
-    pub layer_shell: LayerShellPermissions,
-}
+pub use protos::permissions::*;
 
 pub fn resource_client_permissions<'a, T: Interface>(res: &'a Resource<T>) -> Option<&'a mut Permissions> {
     if let Some(client) = res.client() {

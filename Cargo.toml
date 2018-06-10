@@ -13,3 +13,4 @@ libweston-sys = { path = "../weston-rs/libweston-sys" }
 #wayland-server = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-server" }
 #wayland-commons = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-commons" }
 #wayland-protocols = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-protocols" }
+wayland-scanner = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-scanner" }

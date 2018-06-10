@@ -5,7 +5,9 @@ use std::os::unix::io::RawFd;
 use std::os::unix::process::CommandExt;
 use pdfork::*;
 use loginw::priority;
+use weston_rs::Display;
 use tiny_nix_ipc::Socket;
+use authorization::{self, Permissions};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {
@@ -66,5 +68,15 @@ fn spawner_loop(mut sock: Socket) -> ! {
                 thread::sleep(time::Duration::from_millis(1000));
             }
         }
+    }
+}
+
+pub fn spawn(display: &mut Display, spawner_sock: &mut Socket, cmd: &str, ps: Option<Permissions>) {
+    if let Some(ps) = ps {
+        let sock = authorization::start_client_socket_with_permissions(display, ps).unwrap();
+        let _ = spawner_sock.send_cbor(&Request::Spawn(cmd.to_owned()), Some(&[sock]));
+        unsafe { libc::close(sock) };
+    } else {
+        let _ = spawner_sock.send_cbor(&Request::Spawn(cmd.to_owned()), None);
     }
 }

@@ -20,4 +20,5 @@ fn gen_proto(name: &str) {
 
 fn main() {
     gen_proto("layer-shell-unstable-v1");
+    gen_proto("dank-shell-private-api");
 }

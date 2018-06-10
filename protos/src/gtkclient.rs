@@ -11,6 +11,7 @@ use wayland_client::protocol::wl_display::RequestsTrait;
 use wayland_client::sys::client::wl_display;
 pub use layer_shell::client::zxdg_layer_shell_v1 as lsh;
 pub use layer_shell::client::zxdg_layer_surface_v1 as lsr;
+pub use dank_private::client::dank_shell as api;
 
 #[allow(non_camel_case_types)]
 type wl_surface = libc::c_void;
@@ -29,6 +30,7 @@ extern "C" {
 
 pub type LayerShellApi = Proxy<lsh::ZxdgLayerShellV1>;
 pub type LayerSurfaceApi = Proxy<lsr::ZxdgLayerSurfaceV1>;
+pub type DankShellApi = Proxy<api::DankShell>;
 
 /// Get proxies for whatever globals you want from the Wayland display GDK is connected to.
 ///
@@ -90,4 +92,13 @@ impl Implementation<Proxy<lsr::ZxdgLayerSurfaceV1>, lsr::Event> for LayerSurface
             });
         }
     }
+}
+
+
+pub fn get_dank_private(globals: &GlobalManager) -> DankShellApi {
+    globals.instantiate_auto::<api::DankShell>()
+        .expect("dankshell private protocol from compositor")
+        .implement(|_, _| {
+            warn!("dank event (wtf?)");
+        })
 }

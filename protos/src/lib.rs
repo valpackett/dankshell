@@ -11,6 +11,9 @@ extern crate wayland_client;
 extern crate wayland_server;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate serde_derive;
+extern crate serde_cbor;
 #[cfg(feature = "gtkclient")]
 extern crate libc;
 #[cfg(feature = "gtkclient")]
@@ -74,6 +77,47 @@ pub mod layer_shell {
         }
     }
 }
+
+pub mod dank_private {
+    #[cfg(feature = "client")]
+    pub use self::generated::client::c_api as client;
+    #[cfg(feature = "server")]
+    pub use self::generated::server::c_api as server;
+
+    mod generated {
+        #[cfg(feature = "client")]
+        pub mod client {
+            pub mod c_interfaces {
+                pub(crate) use wayland_sys::common::{wl_argument, wl_interface};
+                include!(concat!(env!("OUT_DIR"), "/dank-shell-private-api-interfaces.rs"));
+            }
+
+            pub mod c_api {
+                pub(crate) use wayland_sys as sys;
+                pub(crate) use wayland_client::{NewProxy, Proxy};
+                pub(crate) use wayland_commons::{AnonymousObject, Interface, MessageGroup};
+                include!(concat!(env!("OUT_DIR"), "/dank-shell-private-api-client.rs"));
+            }
+        }
+
+        #[cfg(feature = "server")]
+        pub mod server {
+            pub mod c_interfaces {
+                pub(crate) use wayland_sys::common::{wl_argument, wl_interface};
+                include!(concat!(env!("OUT_DIR"), "/dank-shell-private-api-interfaces.rs"));
+            }
+
+            pub mod c_api {
+                pub(crate) use wayland_sys as sys;
+                pub(crate) use wayland_server::{NewResource, Resource};
+                pub(crate) use wayland_commons::{AnonymousObject, Interface, MessageGroup};
+                include!(concat!(env!("OUT_DIR"), "/dank-shell-private-api-server.rs"));
+            }
+        }
+    }
+}
+
+pub mod permissions;
 
 #[cfg(feature = "gtkclient")]
 pub mod gtkclient;
