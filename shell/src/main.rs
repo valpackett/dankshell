@@ -19,7 +19,9 @@ fn main() {
     pretty_env_logger::init();
     gtk::init().expect("gtk::init");
 
-    let (mut layer_shell, _lshthread) = layer_shell::get_layer_shell();
+    let (mut layer_shell, _lshthread) = layer_shell::get_globals(|globals| {
+        layer_shell::get_layer_shell(globals)
+    });
 
     let mut window = Window::new(WindowType::Toplevel);
     window.set_title("test");

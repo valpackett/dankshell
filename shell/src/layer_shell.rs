@@ -30,12 +30,12 @@ extern "C" {
 pub type LayerShellApi = Proxy<lsh::ZxdgLayerShellV1>;
 pub type LayerSurfaceApi = Proxy<lsr::ZxdgLayerSurfaceV1>;
 
-/// Get a layer-shell proxy from the Wayland display GDK is connected to.
+/// Get proxies for whatever globals you want from the Wayland display GDK is connected to.
 ///
 /// Also spawns a thread that polls the Wayland event queue wayland-rs has created
-/// to make sure layer_surface events actually get dispatched.
+/// to make sure the events for these globals actually get dispatched.
 /// TODO: wayland-rs should provide a method that doesn't create a new event queue?
-pub fn get_layer_shell() -> (LayerShellApi, thread::JoinHandle<()>) {
+pub fn get_globals<T: Send + 'static>(global_getter: fn(&GlobalManager) -> T) -> (T, thread::JoinHandle<()>) {
     let gdk_display = gdk::Display::get_default();
     let wl_display = UnsafeSendWrapper(unsafe { gdk_wayland_display_get_wl_display(gdk_display.to_glib_none().0) });
     let (tx, rx) = sync::mpsc::channel();
@@ -46,16 +46,20 @@ pub fn get_layer_shell() -> (LayerShellApi, thread::JoinHandle<()>) {
         for (id, interface, version) in globals.list() {
             debug!("wl global {}: {} (version {})", id, interface, version);
         }
-        tx.send(globals.instantiate_auto::<lsh::ZxdgLayerShellV1>()
-                .expect("xdg-layer-shell protocol from compositor")
-                .implement(|_, _| {
-                    warn!("layer-shell event (wtf?)");
-                })).unwrap();
+        tx.send(global_getter(&globals)).unwrap();
         loop {
             event_queue.dispatch().expect("layer-shell event queue dispatch");
         }
     }).unwrap();
     (rx.recv().unwrap(), thread)
+}
+
+pub fn get_layer_shell(globals: &GlobalManager) -> LayerShellApi {
+    globals.instantiate_auto::<lsh::ZxdgLayerShellV1>()
+        .expect("xdg-layer-shell protocol from compositor")
+        .implement(|_, _| {
+            warn!("layer-shell event (wtf?)");
+        })
 }
 
 pub fn get_layer_surface(layer_shell: &mut LayerShellApi, window: &mut Window, layer: lsh::Layer) -> LayerSurfaceApi {
