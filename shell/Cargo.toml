@@ -16,8 +16,7 @@ name = "dankshell-shell-experience"
 path = "src/main.rs"
 
 [dependencies]
-protos = { path = "../protos", features = ["client"] }
-#wayland-sys = { version = "0", features = ["client"] }
+protos = { path = "../protos", features = ["client", "gtkclient"] }
 wayland-client = "0"
 gtk = { version = "0.4", features = ["v3_16"] }
 gdk = "0"

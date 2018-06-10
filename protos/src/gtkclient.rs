@@ -9,8 +9,8 @@ use wayland_client::{Display, GlobalManager, Proxy};
 use wayland_client::commons::Implementation;
 use wayland_client::protocol::wl_display::RequestsTrait;
 use wayland_client::sys::client::wl_display;
-pub use protos::layer_shell::client::zxdg_layer_shell_v1 as lsh;
-pub use protos::layer_shell::client::zxdg_layer_surface_v1 as lsr;
+pub use layer_shell::client::zxdg_layer_shell_v1 as lsh;
+pub use layer_shell::client::zxdg_layer_surface_v1 as lsr;
 
 #[allow(non_camel_case_types)]
 type wl_surface = libc::c_void;

@@ -12,15 +12,14 @@ extern crate protos;
 
 use gtk::prelude::*;
 use gtk::{Button, Window, WindowType};
-
-mod layer_shell;
+use protos::gtkclient;
 
 fn main() {
     pretty_env_logger::init();
     gtk::init().expect("gtk::init");
 
-    let (mut layer_shell, _lshthread) = layer_shell::get_globals(|globals| {
-        layer_shell::get_layer_shell(globals)
+    let (mut layer_shell, _lshthread) = gtkclient::get_globals(|globals| {
+        gtkclient::get_layer_shell(globals)
     });
 
     let mut window = Window::new(WindowType::Toplevel);
@@ -30,8 +29,8 @@ fn main() {
     let button = Button::new_with_label("Click me!");
     window.add(&button);
 
-    use layer_shell::lsr::{Anchor, RequestsTrait};
-    let layer_surface = layer_shell::get_layer_surface(&mut layer_shell, &mut window, layer_shell::lsh::Layer::Top);
+    use gtkclient::lsr::{Anchor, RequestsTrait};
+    let layer_surface = gtkclient::get_layer_surface(&mut layer_shell, &mut window, gtkclient::lsh::Layer::Top);
     layer_surface.set_anchor(Anchor::Top | Anchor::Left | Anchor::Right);
     layer_surface.set_margin(10, 10, 10, 10);
     window.show_all();

@@ -11,6 +11,21 @@ extern crate wayland_client;
 extern crate wayland_server;
 #[macro_use]
 extern crate bitflags;
+#[cfg(feature = "gtkclient")]
+extern crate libc;
+#[cfg(feature = "gtkclient")]
+#[macro_use]
+extern crate log;
+#[cfg(feature = "gtkclient")]
+extern crate gtk;
+#[cfg(feature = "gtkclient")]
+extern crate gdk;
+#[cfg(feature = "gtkclient")]
+extern crate gdk_sys;
+#[cfg(feature = "gtkclient")]
+extern crate glib;
+#[cfg(feature = "gtkclient")]
+extern crate send_cell;
 
 
 pub mod layer_shell {
@@ -59,3 +74,6 @@ pub mod layer_shell {
         }
     }
 }
+
+#[cfg(feature = "gtkclient")]
+pub mod gtkclient;
