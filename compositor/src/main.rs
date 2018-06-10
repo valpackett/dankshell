@@ -7,7 +7,7 @@ extern crate log;
 extern crate loginw;
 extern crate pdfork;
 extern crate rusty_sandbox;
-extern crate ipc_channel;
+extern crate tiny_nix_ipc;
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -44,7 +44,7 @@ fn main() {
     pretty_env_logger::init();
     weston_rs::log_set_handler(wlog, wlog);
 
-    let (_child_proc, spawner_tx) = spawner::start_spawner();
+    let (_child_proc, mut spawner_sock) = spawner::start_spawner();
 
     let (mut display, mut event_loop) = Display::new();
     let mut compositor = Compositor::new(&display, &mut event_loop);
@@ -53,8 +53,7 @@ fn main() {
 
     // Make a socket for clients to connect to
     let sock_name = display.add_socket_auto().expect("add_socket_auto");
-    spawner_tx.send(spawner::Request::SetDisplayName(sock_name.clone())).unwrap(); // XXX: seems to eat first msg??
-    spawner_tx.send(spawner::Request::SetDisplayName(sock_name)).unwrap();
+    spawner_sock.send_cbor(&spawner::Request::SetDisplayName(sock_name), None).unwrap();
 
     // Backend/head/output setup
     let be = backend::start_backend(&mut compositor, &mut event_loop);
@@ -94,7 +93,7 @@ fn main() {
 
     // Ctrl+Enter to spawn a terminal
     compositor.add_key_binding(ev::KEY_ENTER, KeyboardModifier::CTRL, &|_, _, _| {
-        let _ = spawner_tx.send(spawner::Request::Spawn("weston-terminal".to_owned()));
+        let _ = spawner_sock.send_cbor(&spawner::Request::Spawn("weston-terminal".to_owned()), None);
     });
 
     // Setup layer-shell
@@ -105,6 +104,6 @@ fn main() {
     compositor.wake();
     COMPOSITOR.set(compositor).expect("compositor MutStatic set");
     DESKTOP.set(desktop).expect("desktop MutStatic set");
-    let _ = spawner_tx.send(spawner::Request::Spawn("dankshell-shell-experience".to_owned()));
+    let _ = spawner_sock.send_cbor(&spawner::Request::Spawn("dankshell-shell-experience".to_owned()), None);
     let _ = event_loop.run();
 }

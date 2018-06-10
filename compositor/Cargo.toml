@@ -29,7 +29,7 @@ serde_derive = "1"
 loginw = "0"
 pdfork = "0"
 rusty-sandbox = "0"
-ipc-channel = "0"
+tiny-nix-ipc = { version = "0", features = ["ser_cbor"] }
 lazy_static = "1"
 mut_static = "5"
 log = "0.4"
