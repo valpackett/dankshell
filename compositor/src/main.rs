@@ -1,6 +1,7 @@
 #![feature(nll)]
 
 extern crate libc;
+extern crate nix;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
@@ -21,6 +22,7 @@ use mut_static::MutStatic;
 use weston_rs::*;
 
 mod spawner;
+mod authorization;
 mod backend;
 mod ctx;
 mod moove;
@@ -30,6 +32,7 @@ mod focus;
 mod layer_shell;
 
 use ctx::SurfaceContext;
+use authorization::{Permissions, LayerShellPermissions};
 
 lazy_static! {
     static ref COMPOSITOR: MutStatic<Compositor> = MutStatic::new();
@@ -39,6 +42,12 @@ lazy_static! {
 weston_logger!{fn wlog(msg: &str) {
     info!(target: "weston", "{}", msg);
 }}
+
+fn spawn_with_permissions(display: &mut Display, spawner_sock: &mut tiny_nix_ipc::Socket, cmd: &str, ps: Permissions) {
+    let sock = authorization::start_client_socket_with_permissions(display, ps).unwrap();
+    let _ = spawner_sock.send_cbor(&spawner::Request::Spawn(cmd.to_owned()), Some(&[sock]));
+    unsafe { libc::close(sock) };
+}
 
 fn main() {
     pretty_env_logger::init();
@@ -104,6 +113,13 @@ fn main() {
     compositor.wake();
     COMPOSITOR.set(compositor).expect("compositor MutStatic set");
     DESKTOP.set(desktop).expect("desktop MutStatic set");
-    let _ = spawner_sock.send_cbor(&spawner::Request::Spawn("dankshell-shell-experience".to_owned()), None);
+    spawn_with_permissions(&mut display, &mut spawner_sock, "dankshell-shell-experience", Permissions {
+        layer_shell: LayerShellPermissions {
+            background: true,
+            bottom: true,
+            top: true,
+            overlay: false,
+        }
+    });
     let _ = event_loop.run();
 }

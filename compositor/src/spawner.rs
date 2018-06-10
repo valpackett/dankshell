@@ -1,3 +1,4 @@
+use libc;
 use std::{env, thread, time, ffi};
 use std::process::Command;
 use std::os::unix::io::RawFd;
@@ -31,22 +32,33 @@ fn spawner_loop(mut sock: Socket) -> ! {
     let mut wl_disp = None;
     loop {
         use self::Request::*;
-        match sock.recv_cbor::<Request, [RawFd; 0]>(1024) {
+        match sock.recv_cbor::<Request, [RawFd; 1]>(1024) {
             Ok((SetDisplayName(name), _)) => {
                 wl_disp = Some(name);
             },
-            Ok((Spawn(prog), _)) => {
+            Ok((Spawn(prog), fds)) => {
                 let disp = wl_disp.clone().expect("WAYLAND_DISPLAY must have been set");
+                let prog1 = prog.clone();
                 if let Err(err) = Command::new(&prog).before_exec(move || {
                     // loginw sets realtime priority for the compositor
                     // see https://blog.martin-graesslin.com/blog/2017/09/kwinwayland-goes-real-time/ for reasons
                     // we obviously don't want it in user applications :D
                     priority::make_normal();
                     env::remove_var("DISPLAY");
-                    env::set_var("WAYLAND_DISPLAY", &disp);
+                    if let Some([fd]) = fds {
+                        info!("Spawning '{}' with WAYLAND_SOCKET={}", prog1, fd);
+                        env::remove_var("WAYLAND_DISPLAY");
+                        env::set_var("WAYLAND_SOCKET", format!("{}", fd));
+                    } else {
+                        info!("Spawning '{}' with WAYLAND_DISPLAY={:?}", prog1, disp);
+                        env::set_var("WAYLAND_DISPLAY", &disp);
+                    }
                     Ok(())
                 }).spawn() {
                     warn!("Failed to spawn '{}': {:?}", prog, err);
+                }
+                if let Some([fd]) = fds {
+                    unsafe { libc::close(fd) };
                 }
             },
             Err(err) => {

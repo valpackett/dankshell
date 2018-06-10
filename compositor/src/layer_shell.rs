@@ -12,6 +12,7 @@ use wayland_server::{NewResource, Resource, Display, LoopToken};
 use wayland_server::commons::Implementation;
 use protos::layer_shell::server::zxdg_layer_shell_v1 as lsh;
 use protos::layer_shell::server::zxdg_layer_surface_v1 as lsr;
+use authorization::{self, Permissions, LayerShellPermissions};
 use COMPOSITOR;
 
 struct Layers {
@@ -65,6 +66,7 @@ struct Margin {
 
 /// The data for each surface, kept in its committed_private (user data) field.
 struct LayerShellCtx {
+    allowed: LayerShellPermissions,
     view: View,
     layer: lsh::Layer,
     anchor: lsr::Anchor,
@@ -124,6 +126,13 @@ unsafe impl Send for LayerShellImpl {}
 
 impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShellImpl {
     fn receive(&mut self, msg: lsh::Request, resource: Resource<lsh::ZxdgLayerShellV1>) {
+        let allowed = if let Some(Permissions { layer_shell, .. }) = authorization::resource_client_permissions(&resource) {
+            info!("Permissions: {:?}", layer_shell);
+            *layer_shell
+        } else {
+            warn!("No permissions found");
+            return
+        };
         let self::lsh::Request::GetLayerSurface { id, surface, layer, .. } = msg;
         // wayland-rs wraps user data, for unmanaged resources .get_user_data() returns a nullptr
         let mut surface = get_weston_surface(surface.c_ptr());
@@ -135,10 +144,34 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
                 use self::lsh::Layer::*;
                 let mut layers = LAYERS.write().expect("layer MutStatic");
                 match ctx.layer {
-                    Background => layers.background.view_list_entry_insert(&mut ctx.view),
-                    Bottom => layers.bottom.view_list_entry_insert(&mut ctx.view),
-                    Top => layers.top.view_list_entry_insert(&mut ctx.view),
-                    Overlay => layers.overlay.view_list_entry_insert(&mut ctx.view),
+                    Background => {
+                        if ctx.allowed.background {
+                            layers.background.view_list_entry_insert(&mut ctx.view);
+                        } else {
+                            warn!("Background layer not allowed for this client");
+                        }
+                    },
+                    Bottom => {
+                        if ctx.allowed.bottom {
+                            layers.bottom.view_list_entry_insert(&mut ctx.view)
+                        } else {
+                            warn!("Bottom layer not allowed for this client");
+                        }
+                    },
+                    Top => {
+                        if ctx.allowed.top {
+                            layers.top.view_list_entry_insert(&mut ctx.view)
+                        } else {
+                            warn!("Top layer not allowed for this client");
+                        }
+                    },
+                    Overlay => {
+                        if ctx.allowed.overlay {
+                            layers.overlay.view_list_entry_insert(&mut ctx.view)
+                        } else {
+                            warn!("Overlay layer not allowed for this client");
+                        }
+                    },
                 }
                 unsafe { (*ctx.view.as_ptr()).is_mapped = true };
             }
@@ -161,6 +194,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
             surface.damage();
             surface.compositor_mut().schedule_repaint();
         }, LayerShellCtx {
+            allowed,
             view,
             layer,
             anchor: lsr::Anchor::Top,
