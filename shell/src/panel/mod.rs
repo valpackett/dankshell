@@ -14,6 +14,22 @@ pub enum WidgetConfig {
     Clock(clock::ClockConfig),
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PanelConfig {
+    widgets: Vec<WidgetConfig>
+}
+
+impl Default for PanelConfig {
+    fn default() -> PanelConfig {
+        PanelConfig {
+            widgets: vec![
+                WidgetConfig::QuickLaunch(Default::default()),
+                WidgetConfig::Clock(Default::default()),
+            ]
+        }
+    }
+}
+
 enum WidgetComponent {
     QuickLaunch(Component<quick_launch::Launch>),
     Clock(Component<clock::Clock>),
@@ -22,12 +38,12 @@ enum WidgetComponent {
 pub struct Model {
     layer_shell: gtkclient::LayerShellApi,
     dank_private: gtkclient::DankShellApi,
-    widgets: Vec<WidgetConfig>,
+    config: PanelConfig,
 }
 
 #[derive(Msg)]
 pub enum Msg {
-    Reconfigure(Vec<WidgetConfig>),
+    Reconfigure(PanelConfig),
 }
 
 pub struct Panel {
@@ -46,13 +62,13 @@ impl Update for Panel {
         Model {
             layer_shell,
             dank_private,
-            widgets: vec![],
+            config: Default::default(),
         }
     }
 
     fn update(&mut self, event: Msg) {
         match event {
-            Reconfigure(new_widgets) => {
+            Reconfigure(new_config) => {
                 // Would be cool to diff and modify the config on existing components?
                 // But for now just delete and recreate.
                 for component in self.components.drain(0..) {
@@ -62,7 +78,7 @@ impl Update for Panel {
                         Clock(c) => self.hbox.remove_widget(c),
                     };
                 }
-                self.model.widgets = new_widgets;
+                self.model.config = new_config;
                 setup_widgets(&mut self.components, &self.hbox, &self.model);
             }
         }
@@ -102,7 +118,7 @@ impl Widget for Panel {
 }
 
 fn setup_widgets(components: &mut Vec<WidgetComponent>, hbox: &gtk::Box, model: &Model) {
-    for widget in model.widgets.iter() {
+    for widget in model.config.widgets.iter() {
         use self::WidgetConfig::*;
         let component = match widget {
             Clock(conf) => WidgetComponent::Clock(hbox.add_widget::<clock::Clock>(conf.clone())),

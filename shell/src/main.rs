@@ -7,15 +7,22 @@ extern crate relm;
 extern crate relm_attributes;
 #[macro_use]
 extern crate relm_derive;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate ron;
+extern crate xdg;
 extern crate chrono;
 extern crate wayland_client;
+extern crate atomicwrites;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate error_chain;
 extern crate protos;
 
+mod conf;
 mod panel;
 
 use protos::gtkclient;
@@ -31,12 +38,11 @@ fn main() {
         )
     });
 
+    let confmgr = conf::ConfigManager::new();
+
     let panel = relm::init::<panel::Panel>((layer_shell, dank_private)).expect("init Panel");
 
-    panel.emit(panel::Msg::Reconfigure(vec![
-        panel::WidgetConfig::Clock(Default::default()),
-        panel::WidgetConfig::QuickLaunch(Default::default()),
-    ]));
+    panel.emit(panel::Msg::Reconfigure(confmgr.read("panel.ron").expect("panel config read")));
 
     gtk::main();
 }

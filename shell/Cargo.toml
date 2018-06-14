@@ -28,10 +28,14 @@ relm-attributes = "0"
 relm-derive = "0"
 serde = "1.0"
 serde_derive = "1.0"
+ron = "0"
+xdg = "2"
 chrono = "0.4"
+atomicwrites = "0"
 libc = "0.2"
 log = "0.4"
 pretty_env_logger = "0.2"
+error-chain = "0"
 
 [features]
 default = ["relm/unstable", "relm-attributes/unstable", "relm-derive/unstable"]
