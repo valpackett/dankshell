@@ -19,10 +19,19 @@ path = "src/main.rs"
 protos = { path = "../protos", features = ["client", "gtkclient"] }
 wayland-client = "0"
 gtk = { version = "0.4", features = ["v3_16"] }
-gdk = "0"
-gdk-sys = "0"
-glib = "0"
-send-cell = "0"
+#gdk = "0"
+#gdk-sys = "0"
+#glib = "0"
+#send-cell = "0"
+relm = "0"
+relm-attributes = "0"
+relm-derive = "0"
+serde = "1.0"
+serde_derive = "1.0"
+chrono = "0.4"
 libc = "0.2"
 log = "0.4"
 pretty_env_logger = "0.2"
+
+[features]
+default = ["relm/unstable", "relm-attributes/unstable", "relm-derive/unstable"]
