@@ -9,7 +9,23 @@ mod quick_launch;
 mod clock;
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SeparatorConfig {
+    stretch: bool,
+    padding: u32,
+}
+
+impl Default for SeparatorConfig {
+    fn default() -> SeparatorConfig {
+        SeparatorConfig {
+            stretch: false,
+            padding: 5,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub enum WidgetConfig {
+    Separator(SeparatorConfig),
     QuickLaunch(quick_launch::LaunchConfig),
     Clock(clock::ClockConfig),
 }
@@ -24,6 +40,11 @@ impl Default for PanelConfig {
         PanelConfig {
             widgets: vec![
                 WidgetConfig::QuickLaunch(Default::default()),
+                WidgetConfig::Separator(SeparatorConfig {
+                    stretch: true,
+                    padding: 5,
+                }),
+                WidgetConfig::Separator(Default::default()),
                 WidgetConfig::Clock(Default::default()),
             ]
         }
@@ -31,6 +52,7 @@ impl Default for PanelConfig {
 }
 
 enum WidgetComponent {
+    Separator(gtk::Separator),
     QuickLaunch(Component<quick_launch::Launch>),
     Clock(Component<clock::Clock>),
 }
@@ -74,6 +96,7 @@ impl Update for Panel {
                 for component in self.components.drain(0..) {
                     use self::WidgetComponent::*;
                     match component {
+                        Separator(c) => self.hbox.remove(&c),
                         QuickLaunch(c) => self.hbox.remove_widget(c),
                         Clock(c) => self.hbox.remove_widget(c),
                     };
@@ -121,6 +144,16 @@ fn setup_widgets(components: &mut Vec<WidgetComponent>, hbox: &gtk::Box, model: 
     for widget in model.config.widgets.iter() {
         use self::WidgetConfig::*;
         let component = match widget {
+            Separator(SeparatorConfig { stretch, padding }) => {
+                use gtk::BoxExt;
+                let sep = gtk::Separator::new(gtk::Orientation::Vertical);
+                hbox.pack_start(&sep, *stretch, true, *padding);
+                if *stretch {
+                    sep.set_opacity(0.0);
+                }
+                sep.show();
+                WidgetComponent::Separator(sep)
+            },
             Clock(conf) => WidgetComponent::Clock(hbox.add_widget::<clock::Clock>(conf.clone())),
             QuickLaunch(conf) => WidgetComponent::QuickLaunch(hbox.add_widget::<quick_launch::Launch>((conf.clone(), model.dank_private.clone()))),
         };
