@@ -34,6 +34,7 @@ fn spawner_loop(mut sock: Socket) -> ! {
     let mut wl_disp = None;
     loop {
         use self::Request::*;
+        // TODO check that peer is alive
         match sock.recv_cbor::<Request, [RawFd; 1]>(1024) {
             Ok((SetDisplayName(name), _)) => {
                 wl_disp = Some(name);

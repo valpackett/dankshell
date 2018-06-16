@@ -6,6 +6,7 @@ nix = { git = "https://github.com/nix-rust/nix" }
 pretty_env_logger = { git = "https://github.com/seanmonstar/pretty-env-logger" }
 loginw = { path = "../loginw" }
 rusty-sandbox = { path = "../rusty-sandbox" }
+tiny-nix-ipc = { path = "../tiny-nix-ipc" }
 weston-rs = { path = "../weston-rs/weston-rs" }
 libweston-sys = { path = "../weston-rs/libweston-sys" }
 #wayland-sys = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-sys" }
@@ -13,4 +14,4 @@ libweston-sys = { path = "../weston-rs/libweston-sys" }
 #wayland-server = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-server" }
 #wayland-commons = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-commons" }
 #wayland-protocols = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-protocols" }
-wayland-scanner = { path = "/home/greg/src/github.com/Smithay/wayland-rs/wayland-scanner" }
+wayland-scanner = { git = "https://github.com/Smithay/wayland-rs" }

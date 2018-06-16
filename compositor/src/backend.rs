@@ -1,4 +1,4 @@
-use std::{env, ffi, mem};
+use std::{env, ffi, mem, ptr};
 use weston_rs::*;
 
 pub enum SelectedBackend {
@@ -7,17 +7,30 @@ pub enum SelectedBackend {
 }
 
 pub fn start_backend(compositor: &mut CompositorRef, event_loop: &mut EventLoop) -> SelectedBackend {
-    if env::var("LOGINW_FD").is_ok() {
-        let launcher = LoginwLauncher::connect(&compositor, event_loop, 0, &ffi::CString::new("default").unwrap(), false).expect("connect");
-        compositor.set_launcher(launcher);
-        let _backend = DrmBackend::new(&compositor, DrmBackendConfigBuilder::default().build().unwrap());
-        let output_api = unsafe { DrmOutputImpl::from_ptr(compositor.get_drm_output().expect("get_drm_output").as_ptr()) };
-        SelectedBackend::Drm(output_api)
-    } else {
+    let is_under_wayland = env::var("WAYLAND_DISPLAY").is_ok() || env::var("WAYLAND_SOCKET").is_ok();
+    let is_under_loginw = env::var("LOGINW_FD").is_ok();
+    if is_under_wayland { // TODO X11
         let _backend = WaylandBackend::new(&compositor, WaylandBackendConfigBuilder::default().build().unwrap());
         let output_api = unsafe { WindowedOutputImpl::from_ptr(compositor.get_windowed_output().expect("get_windowed_output").as_ptr()) };
         output_api.create_head(&compositor, "weston-rs simple example");
         SelectedBackend::Windowed(output_api)
+    } else {
+        if is_under_loginw {
+            let launcher = LoginwLauncher::connect(&compositor, event_loop, 0, &ffi::CString::new("default").unwrap(), false).expect("connect");
+            compositor.set_launcher(launcher);
+        } else {
+            #[cfg(target_os = "linux")]
+            unsafe {
+                let mut wrapper: *mut libweston_sys::weston_launcher = ptr::null_mut();
+                //wrapper.iface = &libweston_sys::launcher_logind_iface as *const _ as *mut _;
+                let seatname = ffi::CString::new("seat0").unwrap();
+                libweston_sys::launcher_logind_iface.connect.unwrap()(&mut wrapper as *mut _, compositor.as_ptr(), 0, seatname.as_bytes_with_nul() as *const _ as *const u8, false);
+                compositor.set_launcher_raw(wrapper);
+            }
+        }
+        let _backend = DrmBackend::new(&compositor, DrmBackendConfigBuilder::default().build().unwrap());
+        let output_api = unsafe { DrmOutputImpl::from_ptr(compositor.get_drm_output().expect("get_drm_output").as_ptr()) };
+        SelectedBackend::Drm(output_api)
     }
 }
 
