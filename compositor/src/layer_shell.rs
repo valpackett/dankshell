@@ -179,7 +179,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
                 }
                 unsafe { (*ctx.view.as_ptr()).is_mapped = true };
             }
-            // XXX: output is not assigned on first commit
+            ctx.view.update_transform(); // NOTE: assigns an output!
             if let Some(output) = ctx.view.output() {
                 let output_size = (output.width(), output.height());
                 let (x, y) = ctx.position(surface.get_content_size(), output_size);
@@ -193,8 +193,9 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
                         ctx.resource.set(Some(res));
                     }
                 }
+            } else {
+                warn!("No output on layer-surface commit");
             }
-            ctx.view.update_transform();
             surface.damage();
             surface.compositor_mut().schedule_repaint();
         }, LayerShellCtx {
