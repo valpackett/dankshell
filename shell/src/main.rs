@@ -24,7 +24,9 @@ extern crate protos;
 
 mod conf;
 mod panel;
+mod launcher;
 
+use std::rc::Rc;
 use protos::gtkclient;
 
 fn main() {
@@ -40,9 +42,17 @@ fn main() {
 
     let confmgr = conf::ConfigManager::new();
 
-    let panel = relm::init::<panel::Panel>((layer_shell, dank_private)).expect("init Panel");
+    let launcher = Rc::new(relm::init::<launcher::Launcher>(
+        (layer_shell.clone(), dank_private.clone())
+    ).expect("init Launcher"));
+
+    let panel = relm::init::<panel::Panel>(
+        (layer_shell, dank_private, Rc::clone(&launcher))
+    ).expect("init Panel");
 
     panel.emit(panel::Msg::Reconfigure(confmgr.read("panel.ron").expect("panel config read")));
+    launcher.emit(launcher::Msg::Reconfigure(Default::default()));
+    launcher.emit(launcher::Msg::Hide);
 
     gtk::main();
 }

@@ -83,7 +83,7 @@ impl LayerShellCtx {
         let (mut x, mut y) = (0.0, 0.0);
         if self.anchor.contains(lsr::Anchor::Top | lsr::Anchor::Bottom) ||
             !(self.anchor.contains(lsr::Anchor::Top) || self.anchor.contains(lsr::Anchor::Bottom)) {
-            y = (output_h / 2 - h / 2) as f32;
+            y = (output_h / 2 - h / 2 + self.margin.top / 2 - self.margin.bottom / 2) as f32;
         } else if self.anchor.contains(lsr::Anchor::Bottom) {
             y = (output_h - h - self.margin.bottom) as f32;
         } else if self.anchor.contains(lsr::Anchor::Top) {
@@ -91,12 +91,13 @@ impl LayerShellCtx {
         }
         if self.anchor.contains(lsr::Anchor::Left | lsr::Anchor::Right) ||
             !(self.anchor.contains(lsr::Anchor::Left) || self.anchor.contains(lsr::Anchor::Right)) {
-            x = (output_w / 2 - w / 2) as f32;
+            x = (output_w / 2 - w / 2 + self.margin.left / 2 - self.margin.left / 2) as f32;
         } else if self.anchor.contains(lsr::Anchor::Right) {
             x = (output_w - w - self.margin.right) as f32;
         } else if self.anchor.contains(lsr::Anchor::Left) {
             x = self.margin.left as f32;
         }
+        trace!("Calculated position {:?} for surface of size {:?} for output size {:?}", (x, y), (w, h), (output_w, output_h));
         (x, y)
     }
 
@@ -116,6 +117,7 @@ impl LayerShellCtx {
         if self.anchor.contains(lsr::Anchor::Top | lsr::Anchor::Bottom) {
             h = output_h - self.margin.top - self.margin.bottom;
         }
+        trace!("Calculated next size {:?} for surface with requested size {:?} for output size {:?}", (w, h), (req_w, req_h), (output_w, output_h));
         (w, h)
     }
 }

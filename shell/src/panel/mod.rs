@@ -1,10 +1,13 @@
+use std::rc::Rc;
 use gtk;
 use gtk::prelude::*;
 use relm::{Relm, Update, Widget, Component, ContainerWidget};
 use protos::gtkclient;
+use launcher;
 
 use self::Msg::*;
 
+mod launcher_button;
 mod quick_launch;
 mod clock;
 
@@ -26,6 +29,7 @@ impl Default for SeparatorConfig {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum WidgetConfig {
     Separator(SeparatorConfig),
+    LauncherButton(launcher_button::LauncherButtonConfig),
     QuickLaunch(quick_launch::LaunchConfig),
     Clock(clock::ClockConfig),
 }
@@ -39,6 +43,7 @@ impl Default for PanelConfig {
     fn default() -> PanelConfig {
         PanelConfig {
             widgets: vec![
+                WidgetConfig::LauncherButton(Default::default()),
                 WidgetConfig::QuickLaunch(Default::default()),
                 WidgetConfig::Separator(SeparatorConfig {
                     stretch: true,
@@ -53,6 +58,7 @@ impl Default for PanelConfig {
 
 enum WidgetComponent {
     Separator(gtk::Separator),
+    LauncherButton(Component<launcher_button::LauncherButton>),
     QuickLaunch(Component<quick_launch::Launch>),
     Clock(Component<clock::Clock>),
 }
@@ -60,6 +66,7 @@ enum WidgetComponent {
 pub struct Model {
     layer_shell: gtkclient::LayerShellApi,
     dank_private: gtkclient::DankShellApi,
+    launcher: Rc<Component<launcher::Launcher>>,
     config: PanelConfig,
 }
 
@@ -77,13 +84,15 @@ pub struct Panel {
 
 impl Update for Panel {
     type Model = Model;
-    type ModelParam = (gtkclient::LayerShellApi, gtkclient::DankShellApi);
+    type ModelParam = (gtkclient::LayerShellApi, gtkclient::DankShellApi, Rc<Component<launcher::Launcher>>);
     type Msg = Msg;
 
-    fn model(_relm: &Relm<Self>, (layer_shell, dank_private): (gtkclient::LayerShellApi, gtkclient::DankShellApi)) -> Model {
+    fn model(_relm: &Relm<Self>, (layer_shell, dank_private, launcher):
+             (gtkclient::LayerShellApi, gtkclient::DankShellApi, Rc<Component<launcher::Launcher>>)) -> Model {
         Model {
             layer_shell,
             dank_private,
+            launcher,
             config: Default::default(),
         }
     }
@@ -97,6 +106,7 @@ impl Update for Panel {
                     use self::WidgetComponent::*;
                     match component {
                         Separator(c) => self.hbox.remove(&c),
+                        LauncherButton(c) => self.hbox.remove_widget(c),
                         QuickLaunch(c) => self.hbox.remove_widget(c),
                         Clock(c) => self.hbox.remove_widget(c),
                     };
@@ -118,11 +128,12 @@ impl Widget for Panel {
     fn view(_relm: &Relm<Self>, mut model: Model) -> Self {
         let mut window = gtk::Window::new(gtk::WindowType::Toplevel);
         window.set_title("Panel");
-        window.set_default_size(640, 24);
+        window.set_default_size(640, 32);
         window.set_decorated(false);
         use gtkclient::lsr::{Anchor, RequestsTrait};
         let layer_surface = gtkclient::get_layer_surface(&mut model.layer_shell, &mut window, gtkclient::lsh::Layer::Top);
         layer_surface.set_anchor(Anchor::Bottom | Anchor::Left | Anchor::Right);
+        layer_surface.set_size(640, 32);
 
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         window.add(&hbox);
@@ -154,8 +165,9 @@ fn setup_widgets(components: &mut Vec<WidgetComponent>, hbox: &gtk::Box, model: 
                 sep.show();
                 WidgetComponent::Separator(sep)
             },
-            Clock(conf) => WidgetComponent::Clock(hbox.add_widget::<clock::Clock>(conf.clone())),
+            LauncherButton(conf) => WidgetComponent::LauncherButton(hbox.add_widget::<launcher_button::LauncherButton>((conf.clone(), model.launcher.clone()))),
             QuickLaunch(conf) => WidgetComponent::QuickLaunch(hbox.add_widget::<quick_launch::Launch>((conf.clone(), model.dank_private.clone()))),
+            Clock(conf) => WidgetComponent::Clock(hbox.add_widget::<clock::Clock>(conf.clone())),
         };
         components.push(component);
     }
