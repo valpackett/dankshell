@@ -38,7 +38,7 @@ impl Launcher {
         if !self.model.shown {
             return
         }
-        self.window.hide();
+        self.window.hide(); // Destroys the surface
         self.model.shown = false;
     }
 
@@ -46,6 +46,7 @@ impl Launcher {
         if self.model.shown {
             return
         }
+        // So we create the layer-surface here
         use gtkclient::lsr::{Anchor, RequestsTrait};
         let layer_surface = gtkclient::get_layer_surface(&mut self.model.layer_shell, &mut self.window, gtkclient::lsh::Layer::Top);
         layer_surface.set_margin(0, 0, 32, 0);
@@ -63,7 +64,7 @@ impl Widget for Launcher {
             layer_shell,
             dank_private,
             config: Default::default(),
-            shown: true,
+            shown: false,
         }
     }
 
@@ -89,6 +90,7 @@ impl Widget for Launcher {
         gtk::Window {
             title: "Launcher",
             decorated: false,
+            visible: false,
             gtk::Button {
                 label: "TODO",
             },

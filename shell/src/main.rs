@@ -52,7 +52,6 @@ fn main() {
 
     panel.emit(panel::Msg::Reconfigure(confmgr.read("panel.ron").expect("panel config read")));
     launcher.emit(launcher::Msg::Reconfigure(Default::default()));
-    launcher.emit(launcher::Msg::Hide);
 
     gtk::main();
 }
