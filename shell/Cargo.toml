@@ -16,13 +16,13 @@ name = "dankshell-shell-experience"
 path = "src/main.rs"
 
 [dependencies]
-protos = { path = "../protos", features = ["client", "gtkclient"] }
+protos = { path = "../protos" }
 wayland-client = "0"
-gtk = { version = "0.4", features = ["v3_16"] }
+gtk = "0.4"
 #gdk = "0"
 #gdk-sys = "0"
-#glib = "0"
-#send-cell = "0"
+glib = "0"
+send-cell = "0"
 relm = "0"
 relm-attributes = "0"
 relm-derive = "0"
@@ -30,12 +30,21 @@ serde = "1.0"
 serde_derive = "1.0"
 ron = "0"
 xdg = "2"
+rust-ini = "0"
+glob = "0"
 chrono = "0.4"
 atomicwrites = "0"
+parking_lot = "0.6"
+lock_api = "0" # XXX https://github.com/Amanieu/parking_lot/pull/79 waiting for release
 libc = "0.2"
 log = "0.4"
 pretty_env_logger = "0.2"
 error-chain = "0"
 
 [features]
-default = ["relm/unstable", "relm-attributes/unstable", "relm-derive/unstable"]
+default = [
+	"protos/client", "protos/gtkclient",
+	"gtk/v3_16",
+	"relm/unstable", "relm-attributes/unstable", "relm-derive/unstable",
+	"parking_lot/nightly", "lock_api/nightly" # XXX https://github.com/Amanieu/parking_lot/pull/79 waiting for release
+]

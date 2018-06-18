@@ -1,7 +1,12 @@
 #![feature(proc_macro)]
+#![feature(const_fn)]
+#![feature(const_vec_new)]
+#![feature(fnbox)]
 
 extern crate libc;
 extern crate gtk;
+extern crate glib;
+extern crate send_cell;
 #[macro_use]
 extern crate relm;
 extern crate relm_attributes;
@@ -12,9 +17,12 @@ extern crate serde;
 extern crate serde_derive;
 extern crate ron;
 extern crate xdg;
+extern crate ini;
+extern crate glob;
 extern crate chrono;
 extern crate wayland_client;
 extern crate atomicwrites;
+extern crate parking_lot;
 extern crate pretty_env_logger;
 #[macro_use]
 extern crate log;
@@ -23,10 +31,12 @@ extern crate error_chain;
 extern crate protos;
 
 mod conf;
+mod desktop_entries;
 mod panel;
 mod launcher;
 
 use std::rc::Rc;
+use send_cell::SendCell;
 use protos::gtkclient;
 
 fn main() {
@@ -42,9 +52,19 @@ fn main() {
 
     let confmgr = conf::ConfigManager::new();
 
+    let (desk_tx, _deskthread) = desktop_entries::spawn_reader();
+
     let launcher = Rc::new(relm::init::<launcher::Launcher>(
         (layer_shell.clone(), dank_private.clone())
     ).expect("init Launcher"));
+
+    let launcher_d = SendCell::new(Rc::clone(&launcher));
+    desk_tx.send(Box::new(move || {
+        let _ = glib::idle_add(move || {
+            launcher_d.get().emit(launcher::Msg::ReloadApps);
+            glib::Continue(false)
+        });
+    })).unwrap();
 
     let panel = relm::init::<panel::Panel>(
         (layer_shell, dank_private, Rc::clone(&launcher))

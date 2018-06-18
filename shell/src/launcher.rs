@@ -3,6 +3,7 @@ use gtk::prelude::*;
 use relm::Widget;
 use relm_attributes::widget;
 use protos::gtkclient;
+use desktop_entries::ENTRIES;
 
 use self::Msg::*;
 
@@ -31,6 +32,8 @@ pub enum Msg {
     Show,
     Hide,
     ToggleVisibility,
+    ReloadApps,
+    RunEntry(usize),
 }
 
 impl Launcher {
@@ -54,6 +57,17 @@ impl Launcher {
         layer_surface.set_anchor(Anchor::Bottom | Anchor::Top | Anchor::Left);
         self.window.present();
         self.model.shown = true;
+    }
+
+    fn reload_apps(&mut self) {
+        let entries = ENTRIES.read();
+        for app in entries.apps.iter() {
+            let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+            let label = gtk::Label::new(&app.name as &str);
+            hbox.pack_start(&label, true, true, 10);
+            hbox.show_all();
+            self.app_list.add(&hbox);
+        }
     }
 }
 
@@ -81,7 +95,12 @@ impl Widget for Launcher {
                 } else {
                     self.show();
                 }
-            }
+            },
+            ReloadApps => { self.reload_apps(); },
+            RunEntry(idx) => {
+                warn!("TODO / run {:?}", idx);
+                self.hide();
+            },
         }
     }
 
@@ -91,8 +110,16 @@ impl Widget for Launcher {
             title: "Launcher",
             decorated: false,
             visible: false,
-            gtk::Button {
-                label: "TODO",
+            gtk::Box {
+                orientation: gtk::Orientation::Vertical,
+                gtk::ScrolledWindow {
+                    child: { expand: true },
+                    #[name="app_list"]
+                    gtk::ListBox {
+                        activate_on_single_click: true,
+                        row_activated(_, row) => RunEntry(row.get_index() as usize),
+                    },
+                },
             },
         },
     }
