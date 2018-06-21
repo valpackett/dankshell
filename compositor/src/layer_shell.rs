@@ -140,7 +140,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
         // wayland-rs wraps user data, for unmanaged resources .get_user_data() returns a nullptr
         let surface_res_ptr = surface.c_ptr();
         let mut surface = get_weston_surface(surface_res_ptr);
-        let _ = surface.set_role(ffi::CString::new("layer-shell").unwrap(), resource, 0);
+        let _ = surface.set_role(ffi::CString::new("layer-shell").unwrap(), &resource, 0);
         let view = View::new(&surface);
         let res_rc = Rc::new(Cell::new(None));
         surface.set_committed(|surface, sx, sy, mut ctx| {

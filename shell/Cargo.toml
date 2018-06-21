@@ -35,7 +35,6 @@ glob = "0"
 chrono = "0.4"
 atomicwrites = "0"
 parking_lot = "0.6"
-lock_api = "0" # XXX https://github.com/Amanieu/parking_lot/pull/79 waiting for release
 libc = "0.2"
 log = "0.4"
 pretty_env_logger = "0.2"
@@ -46,5 +45,5 @@ default = [
 	"protos/client", "protos/gtkclient",
 	"gtk/v3_16",
 	"relm/unstable", "relm-attributes/unstable", "relm-derive/unstable",
-	"parking_lot/nightly", "lock_api/nightly" # XXX https://github.com/Amanieu/parking_lot/pull/79 waiting for release
+	"parking_lot/nightly"
 ]

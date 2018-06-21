@@ -17,8 +17,8 @@ path = "src/main.rs"
 
 [dependencies]
 protos = { path = "../protos", features = ["server"] }
+loginw = "0"
 weston-rs = "0"
-libweston-sys = "0"
 wayland-sys = { version = "0", features = ["client", "cursor", "egl", "server"] }
 wayland-server = "0"
 xkbcommon = "0.3"
@@ -27,7 +27,6 @@ libc = "0.2"
 nix = "0.11"
 serde = "1"
 serde_derive = "1"
-loginw = "0"
 pdfork = "0"
 rusty-sandbox = "0"
 tiny-nix-ipc = { version = "0", features = ["ser_cbor"] }

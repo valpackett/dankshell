@@ -1,0 +1,6 @@
+[submodule "weston-rs"]
+	path = weston-rs
+	url = https://github.com/myfreeweb/weston-rs
+[submodule "loginw"]
+	path = loginw
+	url = https://github.com/myfreeweb/loginw
