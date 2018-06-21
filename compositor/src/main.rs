@@ -85,7 +85,7 @@ fn main() {
 
     // The libweston-desktop object
     // NOTE: Important to keep around (do not do 'let _')
-    let desktop = Desktop::new(unsafe { CompositorRef::from_ptr(compositor.as_ptr()) }, desktop_impl);
+    let desktop = Desktop::new(&compositor, desktop_impl);
 
     // Left click to focus window
     let _ = compositor.add_button_binding(ev::BTN_LEFT, KeyboardModifier::empty(), &|p, _, _| focus::click_activate(p));

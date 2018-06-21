@@ -72,7 +72,7 @@ impl DesktopApi<SurfaceContext> for DesktopImpl {
                     focus.surface().main_surface().as_ptr() == dsurf.surface().as_ptr() {
                     let (view_x, view_y) = sctx.view.get_position();
                     let grab = MoveGrab {
-                        dsurf: unsafe { DesktopSurfaceRef::from_ptr_mut(dsurf.as_ptr()) },
+                        dsurf,
                         dx: f64::from(view_x) - wl_fixed_to_double(pointer.grab_x()),
                         dy: f64::from(view_y) - wl_fixed_to_double(pointer.grab_y()),
                     };
@@ -91,15 +91,15 @@ impl DesktopApi<SurfaceContext> for DesktopImpl {
             if let Some(focus) = pointer.focus() {
                 if pointer.button_count() > 0 && serial == pointer.grab_serial() &&
                     focus.surface().main_surface().as_ptr() == dsurf.surface().as_ptr() {
+                    dsurf.set_resizing(true);
+                    sctx.resize_edges = edges;
                     let geom = dsurf.get_geometry();
                     let grab = ResizeGrab {
-                        dsurf: unsafe { DesktopSurfaceRef::from_ptr_mut(dsurf.as_ptr()) },
+                        dsurf,
                         edges,
                         width: geom.width,
                         height: geom.height,
                     };
-                    dsurf.set_resizing(true);
-                    sctx.resize_edges = edges;
                     pointer.start_grab(grab);
                 }
             }
