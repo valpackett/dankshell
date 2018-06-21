@@ -10,7 +10,7 @@ RUSTFLAGS ?= -Zcross-lang-lto -Zexternal-macro-backtrace
 .PHONY: run
 
 SRC_COMPOSITOR != find compositor -name '*.rs'
-SRC_PROTO != find loginw -name '*.rs'
+SRC_PROTO != find protos -name '*.rs'
 SRC_SHELL != find shell -name '*.rs'
 SRC_LOGINW != find loginw -name '*.rs'
 SRC_WESTON != find weston-rs -name '*.rs'
