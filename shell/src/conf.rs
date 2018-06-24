@@ -6,6 +6,7 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use atomicwrites::{AtomicFile, AllowOverwrite};
 
+#[allow(renamed_and_removed_lints)]
 pub mod errors {
     error_chain!{
         foreign_links {
@@ -48,7 +49,7 @@ impl ConfigManager {
         info!("Writing config '{}' to '{:?}'", filename, path);
         let data = ron::ser::to_string_pretty(config, Default::default())?;
         let af = AtomicFile::new(path, AllowOverwrite);
-        af.write(|f| f.write_all(data.as_bytes())).map_err(|e| io::Error::from(e))?;
+        af.write(|f| f.write_all(data.as_bytes())).map_err(io::Error::from)?;
         Ok(())
     }
 }

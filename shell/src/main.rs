@@ -1,7 +1,6 @@
-#![feature(proc_macro)]
-#![feature(const_fn)]
-#![feature(const_vec_new)]
-#![feature(fnbox)]
+#![cfg_attr(feature = "cargo-clippy", allow(redundant_field_names, let_and_return))] // relm-attributes
+#![cfg_attr(feature = "cargo-clippy", allow(identity_op, const_static_lifetime))] // serde-derive
+#![feature(proc_macro, const_fn, const_vec_new, fnbox)]
 
 extern crate libc;
 extern crate gtk;

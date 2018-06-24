@@ -19,7 +19,7 @@ impl Permissions {
         serde_cbor::from_slice(data)
     }
 
-    pub fn to_cbor(&self) -> serde_cbor::error::Result<Vec<u8>> {
-        serde_cbor::to_vec(self)
+    pub fn to_cbor(self) -> serde_cbor::error::Result<Vec<u8>> {
+        serde_cbor::to_vec(&self)
     }
 }

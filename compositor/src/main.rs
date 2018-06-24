@@ -1,7 +1,4 @@
-#![feature(nll)]
-#![feature(vec_remove_item)]
-#![feature(const_fn)]
-#![feature(const_vec_new)]
+#![feature(nll, vec_remove_item, const_fn, const_vec_new)]
 
 extern crate libc;
 extern crate nix;
@@ -75,8 +72,8 @@ fn main() {
     let mut bg_surf = Surface::new(&compositor);
     bg_surf.set_size(8096, 8096);
     bg_surf.set_color(0.1, 0.3, 0.6, 1.0);
-    let mut bg_view = View::new(&bg_surf);
-    bg_layer.view_list_entry_insert(&mut bg_view);
+    let bg_view = View::new(&bg_surf);
+    bg_layer.view_list_entry_insert(&bg_view);
 
     // Our data for libweston-desktop stuff
     let desktop_impl = Box::new(desktop::DesktopImpl::new(&compositor));
@@ -86,9 +83,9 @@ fn main() {
     let desktop = Desktop::new(&compositor, desktop_impl);
 
     // Left click to focus window
-    let _ = compositor.add_button_binding(ev::BTN_LEFT, KeyboardModifier::empty(), &|p, _, _| focus::click_activate(p));
+    compositor.add_button_binding(ev::BTN_LEFT, KeyboardModifier::empty(), &|p, _, _| focus::click_activate(p));
     // Right click to focus window
-    let _ = compositor.add_button_binding(ev::BTN_RIGHT, KeyboardModifier::empty(), &|p, _, _| focus::click_activate(p));
+    compositor.add_button_binding(ev::BTN_RIGHT, KeyboardModifier::empty(), &|p, _, _| focus::click_activate(p));
 
     focus::keyboard_focus_listener().signal_add(
         compositor.first_seat().expect("first_seat")
@@ -102,10 +99,10 @@ fn main() {
 
     // Setup layer-shell
     layer_shell::create_layers(&compositor);
-    layer_shell::register_layer_shell(&mut display, event_loop.token());
+    layer_shell::register_layer_shell(&mut display, &event_loop.token());
 
     // Setup private API (for shell-experience)
-    private_api::register_private_api(&mut display, event_loop.token(), &spawner_sock);
+    private_api::register_private_api(&mut display, &event_loop.token(), &spawner_sock);
 
     // Go!
     compositor.wake();

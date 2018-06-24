@@ -152,7 +152,7 @@ impl Widget for Panel {
 }
 
 fn setup_widgets(components: &mut Vec<WidgetComponent>, hbox: &gtk::Box, model: &Model) {
-    for widget in model.config.widgets.iter() {
+    for widget in &model.config.widgets {
         use self::WidgetConfig::*;
         let component = match widget {
             Separator(SeparatorConfig { stretch, padding }) => {

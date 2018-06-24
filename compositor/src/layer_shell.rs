@@ -14,7 +14,6 @@ use protos::layer_shell::server::zxdg_layer_surface_v1 as lsr;
 use authorization::{self, Permissions, LayerShellPermissions};
 use surface_registry::{SURFACES, SurfaceListItem};
 use util::MutStatic;
-use COMPOSITOR;
 
 struct Layers {
     background: Layer,
@@ -141,35 +140,35 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
         let _ = surface.set_role(ffi::CString::new("layer-shell").unwrap(), &resource, 0);
         let view = View::new(&surface);
         let res_rc = Rc::new(Cell::new(None));
-        surface.set_committed(|surface, sx, sy, mut ctx| {
+        surface.set_committed(|surface, _sx, _sy, ctx| {
             if !ctx.view.is_mapped() {
                 use self::lsh::Layer::*;
                 let mut layers = LAYERS.write();
                 match ctx.layer {
                     Background => {
                         if ctx.allowed.background {
-                            layers.background.view_list_entry_insert(&mut ctx.view);
+                            layers.background.view_list_entry_insert(&ctx.view);
                         } else {
                             warn!("Background layer not allowed for this client");
                         }
                     },
                     Bottom => {
                         if ctx.allowed.bottom {
-                            layers.bottom.view_list_entry_insert(&mut ctx.view)
+                            layers.bottom.view_list_entry_insert(&ctx.view)
                         } else {
                             warn!("Bottom layer not allowed for this client");
                         }
                     },
                     Top => {
                         if ctx.allowed.top {
-                            layers.top.view_list_entry_insert(&mut ctx.view)
+                            layers.top.view_list_entry_insert(&ctx.view)
                         } else {
                             warn!("Top layer not allowed for this client");
                         }
                     },
                     Overlay => {
                         if ctx.allowed.overlay {
-                            layers.overlay.view_list_entry_insert(&mut ctx.view)
+                            layers.overlay.view_list_entry_insert(&ctx.view)
                         } else {
                             warn!("Overlay layer not allowed for this client");
                         }
@@ -210,7 +209,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
     }
 }
 
-pub fn register_layer_shell(display: &mut Display, token: LoopToken) {
+pub fn register_layer_shell(display: &mut Display, token: &LoopToken) {
     display.create_global::<lsh::ZxdgLayerShellV1, _>(&token, 1, |_, res: NewResource<lsh::ZxdgLayerShellV1>| {
         res.implement(LayerShellImpl { }, Some(|_, _| {}));
     });

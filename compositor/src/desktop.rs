@@ -27,7 +27,7 @@ impl DesktopApi<SurfaceContext> for DesktopImpl {
 
     fn surface_added(&mut self, dsurf: &mut DesktopSurfaceRef<SurfaceContext>) {
         let mut view = dsurf.create_view();
-        self.windows_layer.view_list_entry_insert(&mut view);
+        self.windows_layer.view_list_entry_insert(&view);
         let mut compositor = COMPOSITOR.write();
         dsurf.surface_mut().damage();
         compositor.schedule_repaint();

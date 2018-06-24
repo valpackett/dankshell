@@ -18,7 +18,7 @@ impl GetterExt for HashMap<String, String> {
     }
 
     fn get_list(&self, key: &str) -> Vec<String> {
-        self.get(key).map(|x| x.split(";").map(|y| y.to_owned()).collect()).unwrap_or_else(|| Vec::new())
+        self.get(key).map(|x| x.split(';').map(|y| y.to_owned()).collect()).unwrap_or_else(Vec::new)
     }
 }
 
@@ -72,7 +72,7 @@ fn read_entries<P: AsRef<Path>>(files: impl Iterator<Item = P>) -> DesktopEntrie
             Ok(file) => {
                 if let Some(entry) = read_entry(file) {
                     let idx = apps.len(); // before push
-                    for cat in entry.categories.iter() {
+                    for cat in &entry.categories {
                         if !cats.contains_key::<str>(&cat) {
                             cats.insert(cat.clone(), vec![idx]);
                         } else {

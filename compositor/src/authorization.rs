@@ -1,17 +1,16 @@
-use std::ptr;
 use std::os::unix::io::RawFd;
 use nix;
 use nix::fcntl::{self, FdFlag, FcntlArg};
 use nix::sys::socket::{socketpair, AddressFamily, SockFlag, SockType};
 use weston_rs::Display;
-use weston_rs::wayland_server::{Resource, Client};
+use weston_rs::wayland_server::Resource;
 use weston_rs::wayland_server::commons::Interface;
 pub use protos::permissions::*;
 
 pub fn resource_client_permissions<'a, T: Interface>(res: &'a Resource<T>) -> Option<&'a mut Permissions> {
     if let Some(client) = res.client() {
         let ud = client.get_user_data();
-        if ud == ptr::null_mut() {
+        if ud.is_null() {
             return None;
         }
         Some(unsafe { &mut *(ud as *mut Permissions) })

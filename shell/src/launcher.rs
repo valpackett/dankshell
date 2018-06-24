@@ -61,7 +61,7 @@ impl Launcher {
 
     fn reload_apps(&mut self) {
         let entries = ENTRIES.read();
-        for app in entries.apps.iter() {
+        for app in &entries.apps {
             let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
             let label = gtk::Label::new(&app.name as &str);
             hbox.pack_start(&label, true, true, 10);

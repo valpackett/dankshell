@@ -31,7 +31,7 @@ impl Implementation<Resource<api::DankShell>, api::Request> for PrivateApiImpl {
                 spawner::spawn(
                     unsafe { &mut *self.display }, &mut *self.socket, &command,
                     permissions.and_then(|ps| {
-                        if ps.len() < 1 {
+                        if ps.is_empty() {
                             return None
                         }
                         Permissions::from_cbor(&ps).map_err(|e| {
@@ -45,7 +45,7 @@ impl Implementation<Resource<api::DankShell>, api::Request> for PrivateApiImpl {
     }
 }
 
-pub fn register_private_api(display: &mut Display, token: LoopToken, socket: &Socket) {
+pub fn register_private_api(display: &mut Display, token: &LoopToken, socket: &Socket) {
     let dptr = display as *mut Display; // It's defined at the start of main and lives till the end
     let sfd = socket.as_raw_fd();
     display.create_global::<api::DankShell, _>(&token, 1, move |_, res: NewResource<api::DankShell>| {

@@ -1,6 +1,3 @@
-#![allow(dead_code,non_camel_case_types,unused_unsafe,unused_variables)]
-#![allow(non_upper_case_globals,non_snake_case,unused_imports,missing_docs)]
-
 #[macro_use]
 extern crate wayland_sys;
 extern crate wayland_protocols;
@@ -30,7 +27,9 @@ extern crate glib;
 #[cfg(feature = "gtkclient")]
 extern crate fragile;
 
-
+#[cfg_attr(feature = "cargo-clippy", allow(clippy))]
+#[allow(dead_code,non_camel_case_types,unused_unsafe,unused_variables)]
+#[allow(non_upper_case_globals,non_snake_case,unused_imports,missing_docs)]
 pub mod layer_shell {
     #[cfg(feature = "client")]
     pub use self::generated::client::c_api as client;
@@ -78,6 +77,9 @@ pub mod layer_shell {
     }
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy))]
+#[allow(dead_code,non_camel_case_types,unused_unsafe,unused_variables)]
+#[allow(non_upper_case_globals,non_snake_case,unused_imports,missing_docs)]
 pub mod dank_private {
     #[cfg(feature = "client")]
     pub use self::generated::client::c_api as client;
