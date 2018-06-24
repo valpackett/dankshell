@@ -1,10 +1,8 @@
 use std::mem;
-use mut_static::MutStatic;
+use parking_lot::RwLock;
 use weston_rs::{libweston_sys, Surface, ForeignType};
 
-lazy_static! {
-    pub static ref SURFACES: MutStatic<Vec<SurfaceListItem>> = MutStatic::from(Vec::new());
-}
+pub static SURFACES: RwLock<Vec<SurfaceListItem>> = RwLock::new(Vec::new());
 
 pub enum SurfaceListItem {
     Desktop(*mut libweston_sys::weston_desktop_surface),
@@ -22,4 +20,6 @@ impl PartialEq for SurfaceListItem {
     }
 }
 
+// TODO: consider fragile::Sticky
+unsafe impl Send for SurfaceListItem {}
 unsafe impl Sync for SurfaceListItem {}

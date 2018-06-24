@@ -6,7 +6,6 @@ use weston_rs::{
     Compositor, Layer, View, Surface, ForeignType, libweston_sys,
     POSITION_BACKGROUND, POSITION_BOTTOM_UI, POSITION_UI, POSITION_LOCK,
 };
-use mut_static::MutStatic;
 use wayland_sys::server::wl_resource;
 use wayland_server::{NewResource, Resource, Display, LoopToken};
 use wayland_server::commons::Implementation;
@@ -14,6 +13,7 @@ use protos::layer_shell::server::zxdg_layer_shell_v1 as lsh;
 use protos::layer_shell::server::zxdg_layer_surface_v1 as lsr;
 use authorization::{self, Permissions, LayerShellPermissions};
 use surface_registry::{SURFACES, SurfaceListItem};
+use util::MutStatic;
 use COMPOSITOR;
 
 struct Layers {
@@ -23,9 +23,7 @@ struct Layers {
     overlay: Layer,
 }
 
-lazy_static! {
-    static ref LAYERS: MutStatic<Layers> = MutStatic::new();
-}
+static LAYERS: MutStatic<Layers> = MutStatic::new();
 
 pub fn create_layers(compositor: &Compositor) {
     let mut layers = Layers {
@@ -38,7 +36,7 @@ pub fn create_layers(compositor: &Compositor) {
     layers.bottom.set_position(POSITION_BOTTOM_UI);
     layers.top.set_position(POSITION_UI);
     layers.overlay.set_position(POSITION_LOCK);
-    LAYERS.set(layers).expect("layers MutStatic set");
+    LAYERS.set(layers);
 }
 
 extern "C" {
@@ -146,7 +144,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
         surface.set_committed(|surface, sx, sy, mut ctx| {
             if !ctx.view.is_mapped() {
                 use self::lsh::Layer::*;
-                let mut layers = LAYERS.write().expect("layer MutStatic");
+                let mut layers = LAYERS.write();
                 match ctx.layer {
                     Background => {
                         if ctx.allowed.background {
@@ -208,7 +206,7 @@ impl Implementation<Resource<lsh::ZxdgLayerShellV1>, lsh::Request> for LayerShel
             resource: res_rc.clone(),
         });
         res_rc.set(Some(id.implement(LayerSurfaceImpl { surface }, Some(|_, _| {}))));
-        SURFACES.write().expect("surfaces write").push(SurfaceListItem::LayerShell(get_weston_surface(surface_res_ptr)));
+        SURFACES.write().push(SurfaceListItem::LayerShell(get_weston_surface(surface_res_ptr)));
     }
 }
 

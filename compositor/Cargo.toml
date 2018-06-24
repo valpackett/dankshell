@@ -30,7 +30,6 @@ serde_derive = "1"
 pdfork = "0"
 rusty-sandbox = "0"
 tiny-nix-ipc = { version = "0", features = ["ser_cbor"] }
-lazy_static = "1"
-mut_static = "5"
+parking_lot = { version = "0.6", features = ["nightly"] }
 log = "0.4"
 pretty_env_logger = "0.2"

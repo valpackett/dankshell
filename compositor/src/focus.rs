@@ -7,7 +7,7 @@ use DESKTOP;
 fn activate(view: &mut ViewRef, seat: &SeatRef, flags: ActivateFlag) {
     let main_surf = unsafe { SurfaceRef::from_ptr(view.surface().main_surface().as_ptr()) };
     if let Some(dsurf) = DesktopSurfaceRef::<SurfaceContext>::from_surface(&main_surf) {
-        let mut desktop = DESKTOP.write().expect("desktop MutStatic");
+        let mut desktop = DESKTOP.write();
         let desktop_impl = desktop.api().as_any().downcast_mut::<DesktopImpl>().expect("DesktopImpl downcast");
 
         view.activate(&seat, flags);

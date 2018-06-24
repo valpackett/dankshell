@@ -1,5 +1,7 @@
 #![feature(nll)]
 #![feature(vec_remove_item)]
+#![feature(const_fn)]
+#![feature(const_vec_new)]
 
 extern crate libc;
 extern crate nix;
@@ -14,14 +16,10 @@ extern crate tiny_nix_ipc;
 extern crate serde_derive;
 #[macro_use]
 extern crate weston_rs;
-#[macro_use]
-extern crate lazy_static;
-extern crate mut_static;
+extern crate parking_lot;
 extern crate protos;
 
-use mut_static::MutStatic;
-use weston_rs::*;
-
+mod util;
 mod spawner;
 mod authorization;
 mod surface_registry;
@@ -34,13 +32,13 @@ mod focus;
 mod layer_shell;
 mod private_api;
 
+use weston_rs::*;
+use util::MutStatic;
 use ctx::SurfaceContext;
 use authorization::{Permissions, LayerShellPermissions};
 
-lazy_static! {
-    static ref COMPOSITOR: MutStatic<Compositor> = MutStatic::new();
-    static ref DESKTOP: MutStatic<Desktop<SurfaceContext>> = MutStatic::new();
-}
+pub static COMPOSITOR: MutStatic<Compositor> = MutStatic::new();
+pub static DESKTOP: MutStatic<Desktop<SurfaceContext>> = MutStatic::new();
 
 weston_logger!{fn wlog(msg: &str) {
     info!(target: "weston", "{}", msg);
@@ -111,8 +109,8 @@ fn main() {
 
     // Go!
     compositor.wake();
-    COMPOSITOR.set(compositor).expect("compositor MutStatic set");
-    DESKTOP.set(desktop).expect("desktop MutStatic set");
+    COMPOSITOR.set(compositor);
+    DESKTOP.set(desktop);
     spawner::spawn(&mut display, &mut spawner_sock, "dankshell-shell-experience", Some(Permissions {
         layer_shell: LayerShellPermissions {
             background: true,

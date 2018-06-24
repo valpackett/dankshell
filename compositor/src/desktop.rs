@@ -28,7 +28,7 @@ impl DesktopApi<SurfaceContext> for DesktopImpl {
     fn surface_added(&mut self, dsurf: &mut DesktopSurfaceRef<SurfaceContext>) {
         let mut view = dsurf.create_view();
         self.windows_layer.view_list_entry_insert(&mut view);
-        let mut compositor = COMPOSITOR.write().expect("compositor MutStatic");
+        let mut compositor = COMPOSITOR.write();
         dsurf.surface_mut().damage();
         compositor.schedule_repaint();
         dsurf.set_activated(true);
@@ -40,13 +40,13 @@ impl DesktopApi<SurfaceContext> for DesktopImpl {
             last_height: 0.0,
             focus_count: 1,
         }));
-        SURFACES.write().expect("surfaces write").push(SurfaceListItem::Desktop(dsurf.as_ptr()))
+        SURFACES.write().push(SurfaceListItem::Desktop(dsurf.as_ptr()))
     }
 
     fn surface_removed(&mut self, dsurf: &mut DesktopSurfaceRef<SurfaceContext>) {
         let mut sctx = dsurf.get_user_data().expect("user_data");
         dsurf.unlink_view(&mut sctx.view);
-        SURFACES.write().expect("surfaces write").remove_item(&SurfaceListItem::Desktop(dsurf.as_ptr()));
+        SURFACES.write().remove_item(&SurfaceListItem::Desktop(dsurf.as_ptr()));
         // sctx dropped here, destroying the view
     }
 
