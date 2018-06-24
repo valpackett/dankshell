@@ -13,7 +13,7 @@ publish = false
 [features]
 server = ["wayland-sys/server", "wayland-protocols/server", "wayland-server"]
 client = ["wayland-sys/client", "wayland-protocols/client", "wayland-client"]
-gtkclient = ["client", "libc", "log", "gtk", "gdk", "gdk-sys", "glib", "send-cell"]
+gtkclient = ["client", "libc", "log", "gtk", "gdk", "gdk-sys", "glib", "fragile"]
 
 [dependencies]
 wayland-sys = "0"
@@ -31,7 +31,7 @@ gtk = { version = "0.4", features = ["v3_16"], optional = true }
 gdk = { version = "0", optional = true }
 gdk-sys = { version = "0", optional = true }
 glib = { version = "0", optional = true }
-send-cell = { version = "0", optional = true }
+fragile = { version = "0", optional = true }
 
 [build-dependencies]
 wayland-scanner = "0"

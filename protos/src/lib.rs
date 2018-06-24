@@ -28,7 +28,7 @@ extern crate gdk_sys;
 #[cfg(feature = "gtkclient")]
 extern crate glib;
 #[cfg(feature = "gtkclient")]
-extern crate send_cell;
+extern crate fragile;
 
 
 pub mod layer_shell {

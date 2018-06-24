@@ -4,7 +4,7 @@ use std::sync::Arc;
 use gtk::{Window, WidgetExt, GtkWindowExt, Continue};
 use glib::translate::ToGlibPtr;
 use gdk_sys::{GdkDisplay, GdkWindow};
-use send_cell::SendCell;
+use fragile::Sticky;
 use wayland_client::{Display, GlobalManager, Proxy};
 use wayland_client::commons::Implementation;
 use wayland_client::protocol::wl_display::RequestsTrait;
@@ -74,11 +74,11 @@ pub fn get_layer_surface(layer_shell: &mut LayerShellApi, window: &mut Window, l
         &unsafe { Proxy::from_c_ptr(wl_surface as *mut _) },
         None, layer, "".to_owned()
         ).expect("get_layer_surface")
-        .implement(LayerSurfaceImpl { window: Arc::new(SendCell::new(UnsafeSyncWrapper(window.clone()))) })
+        .implement(LayerSurfaceImpl { window: Arc::new(UnsafeSyncWrapper(Sticky::new(window.clone()))) })
 }
 
 struct LayerSurfaceImpl {
-    window: Arc<SendCell<UnsafeSyncWrapper<Window>>>
+    window: Arc<UnsafeSyncWrapper<Sticky<Window>>>
 }
 
 impl Implementation<Proxy<lsr::ZxdgLayerSurfaceV1>, lsr::Event> for LayerSurfaceImpl {
@@ -87,7 +87,7 @@ impl Implementation<Proxy<lsr::ZxdgLayerSurfaceV1>, lsr::Event> for LayerSurface
             let wnd = Arc::clone(&self.window);
             glib::idle_add(move || {
                 debug!("layer-shell configure event {:?}: {}x{}", serial, width, height);
-                wnd.borrow().0.resize(width as i32, height as i32);
+                wnd.0.get().resize(width as i32, height as i32);
                 Continue(false)
             });
         }

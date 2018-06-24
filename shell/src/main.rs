@@ -6,7 +6,7 @@
 extern crate libc;
 extern crate gtk;
 extern crate glib;
-extern crate send_cell;
+extern crate fragile;
 #[macro_use]
 extern crate relm;
 extern crate relm_attributes;
@@ -36,7 +36,7 @@ mod panel;
 mod launcher;
 
 use std::rc::Rc;
-use send_cell::SendCell;
+use fragile::Sticky;
 use protos::gtkclient;
 
 fn main() {
@@ -58,7 +58,7 @@ fn main() {
         (layer_shell.clone(), dank_private.clone())
     ).expect("init Launcher"));
 
-    let launcher_d = SendCell::new(Rc::clone(&launcher));
+    let launcher_d = Sticky::new(Rc::clone(&launcher));
     desk_tx.send(Box::new(move || {
         let _ = glib::idle_add(move || {
             launcher_d.get().emit(launcher::Msg::ReloadApps);
