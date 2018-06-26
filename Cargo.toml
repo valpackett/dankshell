@@ -11,7 +11,7 @@ loginw = { path = "loginw" }
 #rusty-sandbox = { path = "../rusty-sandbox" }
 #tiny-nix-ipc = { path = "../tiny-nix-ipc" }
 
-################################################### Temporary / forks
+################################################### Temporary / forks or updates
 
 #wayland-sys = { path = "../../Smithay/wayland-rs/wayland-sys" }
 #wayland-client = { path = "../../Smithay/wayland-rs/wayland-client" }
@@ -23,3 +23,5 @@ wayland-scanner = { git = "https://github.com/Smithay/wayland-rs" }
 
 nix = { git = "https://github.com/nix-rust/nix" }
 pretty_env_logger = { git = "https://github.com/seanmonstar/pretty-env-logger" }
+
+gio = { git = "https://github.com/myfreeweb/gio", branch = "0.4.1" } # DesktopAppInfo

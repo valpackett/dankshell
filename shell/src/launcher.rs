@@ -1,14 +1,11 @@
 use log::*;
 use serde::{Serialize, Deserialize};
-use gtk;
 use gtk::prelude::*;
-use gdk_pixbuf::PixbufExt;
-use gtk_sys::gtk_icon_size_lookup;
+use gio::prelude::*;
 use relm::{Widget, connect};
 use relm_derive::Msg;
 use relm_attributes::widget;
 use protos::gtkclient;
-use crate::desktop_entries::ENTRIES;
 
 use self::Msg::*;
 
@@ -29,6 +26,7 @@ pub struct Model {
     dank_private: gtkclient::DankShellApi,
     config: LauncherConfig,
     shown: bool,
+    icon_theme: gtk::IconTheme,
 }
 
 #[derive(Msg)]
@@ -65,13 +63,21 @@ impl Launcher {
     }
 
     fn reload_apps(&mut self) {
-        let entries = ENTRIES.read();
-        for app in &entries.apps {
-            let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-            let label = gtk::Label::new(&app.name as &str);
-            hbox.pack_start(&label, true, true, 10);
-            hbox.show_all();
-            self.app_list.add(&hbox);
+        let (apps_time, apps) = elapsed::measure_time(|| gio::AppInfo::get_all());
+        info!("Loading apps took {}", apps_time);
+        for app in &apps {
+            let row = gtk::Grid::new();
+            row.set_column_spacing(10);
+            row.set_row_spacing(10);
+            // WHY CAN'T Image::new_from_*icon_* JUST TAKE FLAGS LIKE FORCE_SIZE?!?!? >_<
+            let icon = gtk::Image::new_from_pixbuf(get_icon(&self.model.icon_theme, 32, app).as_ref());
+            icon.set_margin_start(10);
+            row.add(&icon);
+            let label = gtk::Label::new(&app.get_display_name().unwrap_or("Unnamed App".to_owned()) as &str);
+            label.set_margin_end(10);
+            row.add(&label);
+            row.show_all();
+            self.app_list.add(&row);
         }
     }
 }
@@ -84,6 +90,7 @@ impl Widget for Launcher {
             dank_private,
             config: Default::default(),
             shown: false,
+            icon_theme: gtk::IconTheme::get_default().unwrap(),
         }
     }
 
@@ -118,7 +125,7 @@ impl Widget for Launcher {
             gtk::Box {
                 orientation: gtk::Orientation::Vertical,
                 gtk::ScrolledWindow {
-                    child: { expand: true },
+                    vexpand: true,
                     #[name="app_list"]
                     gtk::ListBox {
                         activate_on_single_click: true,
@@ -129,3 +136,37 @@ impl Widget for Launcher {
         },
     }
 }
+
+fn get_icon(theme: &gtk::IconTheme, size: i32, app: &gio::AppInfo) -> Option<gdk_pixbuf::Pixbuf> {
+    // TODO get display scale
+    // For some reason GENERIC_FALLBACK spams "runtime check failed" and doesn't actually show a fallback??
+    theme.lookup_by_gicon_for_scale(
+        &app.get_icon()?, size, 1, gtk::IconLookupFlags::FORCE_SIZE
+    )?.load_icon().ok()
+}
+
+/* TODO icon cache;
+
+    let cache_key = app.get_icon().unwrap().to_string().unwrap_or("WTF".to_owned());
+
+ * TODO app categories
+
+    let mut cats = HashMap::new();
+    let (cats_time, _) = elapsed::measure_time(|| {
+        for app in &apps {
+            let dapp = app.dynamic_cast::<DesktopAppInfo>().unwrap();
+            if let Some(cats_s) = dapp.get_categories() {
+                for (idx, cat) in cats_s.split(';').enumerate() {
+                    let cat = cat.trim();
+                    if !cats.contains_key::<str>(&cat) {
+                        cats.insert(cat.to_owned(), vec![idx]);
+                    } else {
+                        cats.get_mut::<str>(&cat).unwrap().push(idx);
+                    }
+                }
+            }
+        }
+    });
+    info!("Categorizing apps took {}", cats_time);
+
+*/
