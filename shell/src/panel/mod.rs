@@ -1,9 +1,11 @@
 use std::rc::Rc;
+use serde::{Serialize, Deserialize};
 use gtk;
 use gtk::prelude::*;
 use relm::{Relm, Update, Widget, Component, ContainerWidget};
+use relm_derive::Msg;
 use protos::gtkclient;
-use launcher;
+use crate::launcher;
 
 use self::Msg::*;
 
@@ -130,7 +132,7 @@ impl Widget for Panel {
         window.set_title("Panel");
         window.set_default_size(640, 32);
         window.set_decorated(false);
-        use gtkclient::lsr::{Anchor, RequestsTrait};
+        use protos::gtkclient::lsr::{Anchor, RequestsTrait};
         let layer_surface = gtkclient::get_layer_surface(&mut model.layer_shell, &mut window, gtkclient::lsh::Layer::Top);
         layer_surface.set_anchor(Anchor::Bottom | Anchor::Left | Anchor::Right);
         layer_surface.set_size(640, 32);

@@ -1,33 +1,9 @@
 #![cfg_attr(feature = "cargo-clippy", allow(redundant_field_names, let_and_return))] // relm-attributes
 #![cfg_attr(feature = "cargo-clippy", allow(identity_op, const_static_lifetime))] // serde-derive
-#![feature(proc_macro, const_fn, const_vec_new, fnbox)]
+#![feature(rust_2018_preview, proc_macro, const_fn, const_vec_new, fnbox)]
 
-extern crate libc;
-extern crate gtk;
-extern crate glib;
-extern crate fragile;
-#[macro_use]
-extern crate relm;
-extern crate relm_attributes;
-#[macro_use]
-extern crate relm_derive;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate ron;
-extern crate xdg;
-extern crate ini;
-extern crate glob;
-extern crate chrono;
-extern crate wayland_client;
-extern crate atomicwrites;
-extern crate parking_lot;
-extern crate pretty_env_logger;
-#[macro_use]
-extern crate log;
 #[macro_use]
 extern crate error_chain;
-extern crate protos;
 
 mod conf;
 mod desktop_entries;

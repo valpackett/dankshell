@@ -1,10 +1,10 @@
 use std::any;
 use weston_rs::*;
-use ctx::SurfaceContext;
-use moove::MoveGrab;
-use resize::ResizeGrab;
-use surface_registry::{SURFACES, SurfaceListItem};
-use COMPOSITOR;
+use crate::ctx::SurfaceContext;
+use crate::moove::MoveGrab;
+use crate::resize::ResizeGrab;
+use crate::surface_registry::{SURFACES, SurfaceListItem};
+use crate::COMPOSITOR;
 
 /// Data for the Desktop API implementation
 pub struct DesktopImpl {

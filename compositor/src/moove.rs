@@ -1,5 +1,5 @@
 use weston_rs::*;
-use ctx::SurfaceContext;
+use crate::ctx::SurfaceContext;
 
 /// Grab handler for moving windows
 pub struct MoveGrab<'a> {

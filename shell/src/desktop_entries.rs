@@ -3,6 +3,7 @@ use std::io::Read;
 use std::path::Path;
 use std::boxed::FnBox;
 use std::collections::HashMap;
+use log::*;
 use parking_lot::RwLock;
 use ini::Ini;
 use glob::glob;
@@ -101,7 +102,7 @@ fn update_entries() {
     *entries = new_entries;
 }
 
-pub type UpdateCallback = Box<FnBox() + Send + 'static>;
+pub type UpdateCallback = Box<dyn FnBox() + Send + 'static>;
 
 pub fn spawn_reader() -> (sync::mpsc::Sender<UpdateCallback>, thread::JoinHandle<()>) {
     let (tx, rx): (sync::mpsc::Sender<UpdateCallback>, sync::mpsc::Receiver<UpdateCallback>) = sync::mpsc::channel();

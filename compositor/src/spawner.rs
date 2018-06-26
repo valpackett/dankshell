@@ -3,11 +3,13 @@ use std::{env, thread, time, ffi};
 use std::process::Command;
 use std::os::unix::io::RawFd;
 use std::os::unix::process::CommandExt;
+use log::*;
+use serde_derive::{Serialize, Deserialize};
 use pdfork::*;
 use loginw::priority;
 use weston_rs::Display;
 use tiny_nix_ipc::Socket;
-use authorization::{self, Permissions};
+use crate::authorization::{self, Permissions};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Request {

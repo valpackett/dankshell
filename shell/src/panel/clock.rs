@@ -1,7 +1,9 @@
+use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Local};
 use gtk;
 use gtk::LabelExt;
 use relm::{Relm, Widget, interval};
+use relm_derive::Msg;
 use relm_attributes::widget;
 
 use self::Msg::*;

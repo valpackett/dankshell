@@ -1,5 +1,6 @@
 use std::{io, fs};
 use std::io::Write;
+use log::*;
 use xdg;
 use ron;
 use serde::Serialize;

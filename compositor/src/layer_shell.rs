@@ -1,6 +1,7 @@
 use std::{ffi, mem};
 use std::rc::Rc;
 use std::cell::Cell;
+use log::*;
 use libc;
 use weston_rs::{
     Compositor, Layer, View, Surface, ForeignType, libweston_sys,
@@ -11,9 +12,9 @@ use wayland_server::{NewResource, Resource, Display, LoopToken};
 use wayland_server::commons::Implementation;
 use protos::layer_shell::server::zxdg_layer_shell_v1 as lsh;
 use protos::layer_shell::server::zxdg_layer_surface_v1 as lsr;
-use authorization::{self, Permissions, LayerShellPermissions};
-use surface_registry::{SURFACES, SurfaceListItem};
-use util::MutStatic;
+use crate::authorization::{self, Permissions, LayerShellPermissions};
+use crate::surface_registry::{SURFACES, SurfaceListItem};
+use crate::util::MutStatic;
 
 struct Layers {
     background: Layer,

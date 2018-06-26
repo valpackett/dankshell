@@ -1,8 +1,8 @@
 use std::cell;
 use weston_rs::*;
-use ctx::SurfaceContext;
-use desktop::DesktopImpl;
-use DESKTOP;
+use crate::ctx::SurfaceContext;
+use crate::desktop::DesktopImpl;
+use crate::DESKTOP;
 
 fn activate(view: &mut ViewRef, seat: &SeatRef, flags: ActivateFlag) {
     let main_surf = unsafe { SurfaceRef::from_ptr(view.surface().main_surface().as_ptr()) };

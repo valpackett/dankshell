@@ -1,4 +1,5 @@
 use std::{env, ffi, mem};
+use log::*;
 use weston_rs::*;
 
 pub enum SelectedBackend {

@@ -1,9 +1,14 @@
+use log::*;
+use serde::{Serialize, Deserialize};
 use gtk;
 use gtk::prelude::*;
-use relm::Widget;
+use gdk_pixbuf::PixbufExt;
+use gtk_sys::gtk_icon_size_lookup;
+use relm::{Widget, connect};
+use relm_derive::Msg;
 use relm_attributes::widget;
 use protos::gtkclient;
-use desktop_entries::ENTRIES;
+use crate::desktop_entries::ENTRIES;
 
 use self::Msg::*;
 
@@ -50,7 +55,7 @@ impl Launcher {
             return
         }
         // So we create the layer-surface here
-        use gtkclient::lsr::{Anchor, RequestsTrait};
+        use protos::gtkclient::lsr::{Anchor, RequestsTrait};
         let layer_surface = gtkclient::get_layer_surface(&mut self.model.layer_shell, &mut self.window, gtkclient::lsh::Layer::Top);
         layer_surface.set_margin(0, 0, 32, 0);
         layer_surface.set_size(320, 480);

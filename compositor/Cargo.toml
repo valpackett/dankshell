@@ -1,3 +1,5 @@
+cargo-features = ["edition"]
+
 [package]
 name = "compositor"
 version = "0.0.0"
@@ -8,6 +10,7 @@ description = "The dankshell Wayland compositor"
 license = "MIT"
 homepage = "https://github.com/myfreeweb/dankshell"
 repository = "https://github.com/myfreeweb/dankshell"
+edition = "2018"
 publish = false
 autobins = false
 

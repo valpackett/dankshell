@@ -1,6 +1,8 @@
+use serde::{Serialize, Deserialize};
 use gtk;
 use gtk::ButtonExt;
-use relm::Widget;
+use relm::{Widget, connect};
+use relm_derive::Msg;
 use relm_attributes::widget;
 use protos::gtkclient;
 
@@ -45,7 +47,7 @@ impl Widget for Launch {
     fn update(&mut self, event: Msg) {
         match event {
             Click => {
-                use gtkclient::api::RequestsTrait;
+                use protos::gtkclient::api::RequestsTrait;
                 self.model.dank_private.spawn_program(self.model.config.cmd.clone(), None);
             },
         }

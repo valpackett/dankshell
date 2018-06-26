@@ -1,6 +1,6 @@
 use std::cmp;
 use weston_rs::*;
-use ctx::SurfaceContext;
+use crate::ctx::SurfaceContext;
 
 /// Grab handler for resizing windows
 pub struct ResizeGrab<'a> {

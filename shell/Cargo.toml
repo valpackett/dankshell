@@ -1,3 +1,5 @@
+cargo-features = ["edition"]
+
 [package]
 name = "shell"
 version = "0.0.0"
@@ -8,6 +10,7 @@ description = "The dankshell shell experience"
 license = "MIT"
 homepage = "https://github.com/myfreeweb/dankshell"
 repository = "https://github.com/myfreeweb/dankshell"
+edition = "2018"
 publish = false
 autobins = false
 
@@ -19,7 +22,9 @@ path = "src/main.rs"
 protos = { path = "../protos" }
 wayland-client = "0"
 gtk = "0.4"
+gtk-sys = "0"
 #gdk = "0"
+gdk-pixbuf = "0"
 #gdk-sys = "0"
 glib = "0"
 relm = "0"

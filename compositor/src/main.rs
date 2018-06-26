@@ -1,20 +1,4 @@
-#![feature(nll, vec_remove_item, const_fn, const_vec_new)]
-
-extern crate libc;
-extern crate nix;
-extern crate pretty_env_logger;
-#[macro_use]
-extern crate log;
-extern crate loginw;
-extern crate pdfork;
-extern crate rusty_sandbox;
-extern crate tiny_nix_ipc;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate weston_rs;
-extern crate parking_lot;
-extern crate protos;
+#![feature(rust_2018_preview, nll, vec_remove_item, const_fn, const_vec_new)]
 
 mod util;
 mod spawner;
@@ -29,10 +13,11 @@ mod focus;
 mod layer_shell;
 mod private_api;
 
+use log::*;
 use weston_rs::*;
-use util::MutStatic;
-use ctx::SurfaceContext;
-use authorization::{Permissions, LayerShellPermissions};
+use crate::util::MutStatic;
+use crate::ctx::SurfaceContext;
+use crate::authorization::{Permissions, LayerShellPermissions};
 
 pub static COMPOSITOR: MutStatic<Compositor> = MutStatic::new();
 pub static DESKTOP: MutStatic<Desktop<SurfaceContext>> = MutStatic::new();

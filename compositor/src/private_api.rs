@@ -1,11 +1,12 @@
 use std::mem;
 use std::os::unix::io::{AsRawFd, FromRawFd};
+use log::*;
 use wayland_server::{NewResource, Resource, Display, LoopToken};
 use wayland_server::commons::Implementation;
 use tiny_nix_ipc::Socket;
 use protos::dank_private::server::dank_shell as api;
-use authorization::{self, Permissions};
-use spawner;
+use crate::authorization::{self, Permissions};
+use crate::spawner;
 
 struct PrivateApiImpl {
     display: *mut Display,
