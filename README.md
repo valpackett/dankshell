@@ -16,6 +16,7 @@ dankshell is written in [Rust] and uses [Weston]/[weston-rs] for the compositor 
 
 Currently, it's an early proof-of-concept.
 A GTK bar renders on the UI layer of the libweston compositor, using the `layer-shell` protocol's `get_layer_surface` message.
+There's also an app launcher thing in-progress, so the below screenshot is already out of date :)
 
 ![Screenshot](https://unrelentingtech.s3.dualstack.eu-west-1.amazonaws.com/dankshell-prototype-1.png)
 
