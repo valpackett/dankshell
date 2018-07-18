@@ -1,4 +1,4 @@
-#![feature(rust_2018_preview, nll, vec_remove_item, const_fn, const_vec_new)]
+#![feature(rust_2018_preview, use_extern_macros, nll, vec_remove_item, const_fn, const_vec_new)]
 
 mod util;
 mod spawner;

@@ -19,7 +19,7 @@ loginw = { path = "loginw" }
 #wayland-commons = { path = "../../Smithay/wayland-rs/wayland-commons" }
 #wayland-protocols = { path = "../../Smithay/wayland-rs/wayland-protocols" }
 #wayland-scanner = { path = "../../Smithay/wayland-rs/wayland-scanner" }
-wayland-scanner = { git = "https://github.com/Smithay/wayland-rs" }
+#wayland-scanner = { git = "https://github.com/Smithay/wayland-rs" }
 
 nix = { git = "https://github.com/nix-rust/nix" }
 pretty_env_logger = { git = "https://github.com/seanmonstar/pretty-env-logger" }

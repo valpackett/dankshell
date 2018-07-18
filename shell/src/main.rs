@@ -1,6 +1,6 @@
 #![cfg_attr(feature = "cargo-clippy", allow(redundant_field_names, let_and_return))] // relm-attributes
 #![cfg_attr(feature = "cargo-clippy", allow(identity_op, const_static_lifetime))] // serde-derive
-#![feature(rust_2018_preview, proc_macro)]
+#![feature(rust_2018_preview, use_extern_macros)]
 
 #[macro_use]
 extern crate error_chain;

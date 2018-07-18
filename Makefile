@@ -5,7 +5,8 @@ BUILDWRAP ?= nice -n20 time
 CARGO ?= cargo +nightly
 RUST_BACKTRACE ?= full
 RUST_LOG ?= info
-RUSTFLAGS ?= -Zcross-lang-lto -Zexternal-macro-backtrace
+RUSTFLAGS ?= -Zexternal-macro-backtrace
+# RUSTFLAGS ?= -Zcross-lang-lto -Zexternal-macro-backtrace # broke lld recently: "PlaceholderQueue hasn't been flushed"
 
 .PHONY: run
 
