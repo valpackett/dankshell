@@ -11,6 +11,7 @@ extern crate bitflags;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_cbor;
+extern crate serde;
 #[cfg(feature = "gtkclient")]
 extern crate libc;
 #[cfg(feature = "gtkclient")]
@@ -26,6 +27,8 @@ extern crate gdk_sys;
 extern crate glib;
 #[cfg(feature = "gtkclient")]
 extern crate fragile;
+
+use serde::{Serialize, de::DeserializeOwned};
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy))]
 #[allow(dead_code,non_camel_case_types,unused_unsafe,unused_variables)]
@@ -119,7 +122,17 @@ pub mod dank_private {
     }
 }
 
+pub trait CborConv: Sized + Serialize + DeserializeOwned {
+    fn from_cbor(data: &[u8]) -> serde_cbor::error::Result<Self> {
+        serde_cbor::from_slice(data)
+    }
+    fn to_cbor(self) -> serde_cbor::error::Result<Vec<u8>> {
+        serde_cbor::to_vec(&self)
+    }
+}
+
 pub mod permissions;
+pub mod outputs;
 
 #[cfg(feature = "gtkclient")]
 pub mod gtkclient;

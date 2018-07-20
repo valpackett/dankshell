@@ -1,4 +1,4 @@
-use serde_cbor;
+use CborConv;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct LayerShellPermissions {
@@ -14,12 +14,4 @@ pub struct Permissions {
     pub private_api: bool,
 }
 
-impl Permissions {
-    pub fn from_cbor(data: &[u8]) -> serde_cbor::error::Result<Permissions> {
-        serde_cbor::from_slice(data)
-    }
-
-    pub fn to_cbor(self) -> serde_cbor::error::Result<Vec<u8>> {
-        serde_cbor::to_vec(&self)
-    }
-}
+impl CborConv for Permissions {}

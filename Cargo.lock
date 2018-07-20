@@ -1117,6 +1117,7 @@ dependencies = [
  "gtk-sys 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.42 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "parking_lot 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "pretty_env_logger 0.2.4 (git+https://github.com/seanmonstar/pretty-env-logger)",
  "protos 0.0.0",
  "relm 0.14.6 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -21,6 +21,10 @@
 			<arg name="command" type="string" summary="command to run"/>
 			<arg name="permissions" type="array" summary="permissions (CBOR)" allow-null="true"/>
 		</request>
+
+		<event name="output_state">
+			<arg name="data" type="array" summary="output state (CBOR)"/>
+		</event>
 	</interface>
 
 </protocol>

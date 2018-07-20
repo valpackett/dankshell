@@ -95,10 +95,9 @@ impl Implementation<Proxy<lsr::ZxdgLayerSurfaceV1>, lsr::Event> for LayerSurface
 }
 
 
-pub fn get_dank_private(globals: &GlobalManager) -> DankShellApi {
+pub fn get_dank_private(globals: &GlobalManager,
+                        implementation: impl Implementation<Proxy<api::DankShell>, api::Event> + Send + 'static) -> DankShellApi {
     globals.instantiate_auto::<api::DankShell>()
         .expect("dankshell private protocol from compositor")
-        .implement(|_, _| {
-            warn!("dank event (wtf?)");
-        })
+        .implement(implementation)
 }

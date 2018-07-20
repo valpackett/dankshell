@@ -1,6 +1,7 @@
 use std::{env, ffi, mem};
 use log::*;
 use weston_rs::*;
+use crate::private_api;
 
 pub enum SelectedBackend {
     Drm(DrmOutputImpl),
@@ -48,6 +49,7 @@ pub fn heads_changed_listener(be: SelectedBackend) -> mem::ManuallyDrop<Box<WlLi
             }
             head.reset_device_changed();
         }
+        private_api::send_output_info(compositor);
     }))
 }
 

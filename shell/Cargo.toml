@@ -39,6 +39,7 @@ rust-ini = "0"
 glob = "0"
 chrono = "0.4"
 atomicwrites = "0"
+parking_lot = "0.6"
 fragile = "0"
 libc = "0.2"
 log = "0.4"
@@ -51,4 +52,5 @@ default = [
 	"protos/client", "protos/gtkclient",
 	"gtk/v3_16",
 	"relm/unstable", "relm-attributes/unstable", "relm-derive/unstable",
+	"parking_lot/nightly",
 ]
